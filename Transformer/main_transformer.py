@@ -79,7 +79,6 @@ def run_baseline_experiment(data, input_len, model_name, output_len, parameters)
                           [str(e) for e in list(parameters.values())] +
                           ['eb_0.0'])
 
-    num_samples = 1
 
     torch_device_str = 'cpu'
     n_epochs = 10
