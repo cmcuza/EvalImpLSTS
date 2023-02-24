@@ -1,0 +1,18 @@
+900000
+
+1 dk.aau.modelardb.core.models.UncompressedModelType
+2 dk.aau.modelardb.core.models.SwingFilterModelType
+
+1 OT-E1
+2 OT-E65
+3 OT-E3
+4 OT-E5
+5 OT-E7
+6 OT-E40
+7 OT-E10
+8 OT-E15
+9 OT-E80
+10 OT-E50
+11 OT-E20
+12 OT-E25
+13 OT-E30

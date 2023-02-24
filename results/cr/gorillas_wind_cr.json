@@ -1,0 +1,102 @@
+{
+    "wind_speed-R": {
+        "segments": {
+            "gzip": 380749
+        }
+    },
+    "wind_speed-E0": {
+        "segments": {
+            "gzip": 221347
+        }
+    },
+    "pitch_angle-R": {
+        "segments": {
+            "gzip": 152439
+        }
+    },
+    "pitch_angle-E0": {
+        "segments": {
+            "gzip": 32400
+        }
+    },
+    "rotor_speed-R": {
+        "segments": {
+            "gzip": 417685
+        }
+    },
+    "rotor_speed-E0": {
+        "segments": {
+            "gzip": 234716
+        }
+    },
+    "active_power-R": {
+        "segments": {
+            "gzip": 378566
+        }
+    },
+    "active_power-E0": {
+        "segments": {
+            "gzip": 218821
+        }
+    },
+    "cos_nacelle_dir-R": {
+        "segments": {
+            "gzip": 120921
+        }
+    },
+    "cos_nacelle_dir-E0": {
+        "segments": {
+            "gzip": 7138
+        }
+    },
+    "sin_nacelle_dir-R": {
+        "segments": {
+            "gzip": 119880
+        }
+    },
+    "sin_nacelle_dir-E0": {
+        "segments": {
+            "gzip": 6242
+        }
+    },
+    "cos_wind_dir-R": {
+        "segments": {
+            "gzip": 464987
+        }
+    },
+    "cos_wind_dir-E0": {
+        "segments": {
+            "gzip": 322626
+        }
+    },
+    "sin_wind_dir-R": {
+        "segments": {
+            "gzip": 429219
+        }
+    },
+    "sin_wind_dir-E0": {
+        "segments": {
+            "gzip": 273446
+        }
+    },
+    "cor._nacelle_direction-R": {
+        "segments": {
+            "gzip": 120015
+        }
+    },
+    "cor._nacelle_direction-E0": {
+        "segments": {
+            "gzip": 6527
+        }
+    },
+    "cor._wind_direction-R": {
+        "segments": {
+            "gzip": 441380
+        }
+    },
+    "cor._wind_direction-E0": {
+        "segments": {
+            "gzip": 283663
+        }
+    }
+}

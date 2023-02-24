@@ -1,0 +1,12 @@
+{
+    "OT-R": {
+        "segments": {
+            "gzip": 40672
+        }
+    },
+    "OT-E0": {
+        "segments": {
+            "gzip": 21236
+        }
+    }
+}

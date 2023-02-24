@@ -1,0 +1,52 @@
+{
+    "OT-R": {
+        "segments": {
+            "gzip": 43651
+        }
+    },
+    "OT-E1.0": {
+        "segments": {
+            "gzip": 7169
+        }
+    },
+    "OT-E2.0": {
+        "segments": {
+            "gzip": 2817
+        }
+    },
+    "OT-E2.3": {
+        "segments": {
+            "gzip": 2337
+        }
+    },
+    "OT-E2.5": {
+        "segments": {
+            "gzip": 2068
+        }
+    },
+    "OT-E1.5": {
+        "segments": {
+            "gzip": 4318
+        }
+    },
+    "OT-E1.7": {
+        "segments": {
+            "gzip": 3595
+        }
+    },
+    "OT-E3.0": {
+        "segments": {
+            "gzip": 1556
+        }
+    },
+    "OT-E1.3": {
+        "segments": {
+            "gzip": 5342
+        }
+    },
+    "OT-E2.7": {
+        "segments": {
+            "gzip": 1827
+        }
+    }
+}

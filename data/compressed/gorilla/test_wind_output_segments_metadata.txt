@@ -1,0 +1,15 @@
+2000
+
+1 dk.aau.modelardb.core.models.UncompressedModelType
+2 dk.aau.modelardb.core.models.FacebookGorillaModelType
+
+1 wind_speed-E0
+2 pitch_angle-E0
+3 rotor_speed-E0
+4 active_power-E0
+5 cos_nacelle_dir-E0
+6 sin_nacelle_dir-E0
+7 cos_wind_dir-E0
+8 sin_wind_dir-E0
+9 cor._nacelle_direction-E0
+10 cor._wind_direction-E0

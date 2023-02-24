@@ -1,0 +1,72 @@
+{
+    "OT-R": {
+        "segments": {
+            "gzip": 34240
+        }
+    },
+    "OT-E1": {
+        "segments": {
+            "gzip": 9660
+        }
+    },
+    "OT-E65": {
+        "segments": {
+            "gzip": 844
+        }
+    },
+    "OT-E3": {
+        "segments": {
+            "gzip": 8388
+        }
+    },
+    "OT-E5": {
+        "segments": {
+            "gzip": 6773
+        }
+    },
+    "OT-E7": {
+        "segments": {
+            "gzip": 5536
+        }
+    },
+    "OT-E40": {
+        "segments": {
+            "gzip": 1389
+        }
+    },
+    "OT-E10": {
+        "segments": {
+            "gzip": 4437
+        }
+    },
+    "OT-E15": {
+        "segments": {
+            "gzip": 3282
+        }
+    },
+    "OT-E80": {
+        "segments": {
+            "gzip": 745
+        }
+    },
+    "OT-E50": {
+        "segments": {
+            "gzip": 1091
+        }
+    },
+    "OT-E20": {
+        "segments": {
+            "gzip": 2609
+        }
+    },
+    "OT-E25": {
+        "segments": {
+            "gzip": 2104
+        }
+    },
+    "OT-E30": {
+        "segments": {
+            "gzip": 1775
+        }
+    }
+}
