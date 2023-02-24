@@ -102,8 +102,7 @@ print(args)
 Exp = Exp_Informer
 exp = None
 for ii in range(args.itr):
-    # for eb in [0.0, 1.0, 1.3.0, 5.0, 7.0, 10.0, 15.0, 20.0, 25.0, 30.0, 40.0, 50.0, 65.0, 80.0]:
-    for eb in [0.0, 1.0, 1.3, 1.5, 1.7, 2.0, 2.3, 2.5, 2.7, 3.0]:
+    for eb in [0.0, 1.0, 3.0, 5.0, 7.0, 10.0, 15.0, 20.0, 25.0, 30.0, 40.0, 50.0, 65.0, 80.0]:
         setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_at{}_fc{}_eb{}_dt{}_mx{}_eb{}_train_raw{}_{}_{}'.format(args.model,
                                                                                                                 args.data,
                                                                                                                 args.features,
