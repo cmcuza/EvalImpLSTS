@@ -1,199 +1,92 @@
-import pandas as pd
-import pickle as pkl
-from darts import TimeSeries
-from Transformer.components.model import Transformer
-from darts.dataprocessing.transformers import Scaler
-from sklearn.preprocessing import StandardScaler
-from torch.optim.lr_scheduler import StepLR
-from utils.metrics import *
+import argparse
+import torch
+import random
+import numpy as np
+from Transformer.exp.exp_transformer import Exp_Main
 
 
-def temporal_train_val_test_split(data, seq_len, ot='OT-R'):
-    border1s = [0, 12 * 30 * 24 * 4 - seq_len, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4 - seq_len]
-    border2s = [12 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 8 * 30 * 24 * 4]
+fix_seed = 42
+random.seed(fix_seed)
+torch.manual_seed(fix_seed)
+np.random.seed(fix_seed)
 
-    train_border1 = border1s[0]
-    train_border2 = border2s[0]
-    target_column = ['datetime', ot]
+parser = argparse.ArgumentParser(description='Transformer family for Time Series Forecasting')
 
-    train_data = data[target_column][train_border1:train_border2].reset_index(drop=True)
+# basic config
+parser.add_argument('--train_raw', type=bool, default=True, help='train on raw time series')
+parser.add_argument('--exp_id', type=str, required=True, default='test', help='model id')
+parser.add_argument('--model', type=str, default='Transformer', help='model name, options: [Autoformer, Informer, Transformer]')
 
-    val_border1 = border1s[1]
-    val_border2 = border2s[1]
+# data loader
+parser.add_argument('--root_path', type=str, default='../data/compressed/', help='root path of the data file')
+parser.add_argument('--data', type=str, required=True, default='ETTm1.parquet', help='data file')
+parser.add_argument('--features', type=str, default='S', help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
+parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
+parser.add_argument('--freq', type=str, default='h', help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
+parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
 
-    val_data = data[target_column][val_border1:val_border2].reset_index(drop=True)
+parser.add_argument('--eb', type=float, default=0.0)
+# forecasting task
+parser.add_argument('--input_len', type=int, default=96, help='input sequence length')
+parser.add_argument('--output_len', type=int, default=24, help='prediction sequence length')
+parser.add_argument('--target_var', type=str, required=True, default='OT', help='target variable in the dataset')
+parser.add_argument('--EB', type=list, default=[0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 65, 80], help='error bounds to run the experiments on')
+# Model
+parser.add_argument('--d_model', type=int, default=32, help='hidden layers dimension')
+parser.add_argument('--n_heads', type=int, default=8, help='num of heads')
+parser.add_argument('--e_layers', type=int, default=2, help='num of encoder layers')
+parser.add_argument('--d_layers', type=int, default=2, help='num of decoder layers')
+parser.add_argument('--d_ff', type=int, default=64, help='dimension of fcn')
+parser.add_argument('--dropout', type=float, default=0.0, help='dropout')
 
-    test_border1 = border1s[2]
-    test_border2 = border2s[2]
+# optimization
+parser.add_argument('--itr', type=int, default=10, help='experiments times')
+parser.add_argument('--train_epochs', type=int, default=10, help='train epochs')
+parser.add_argument('--batch_size', type=int, default=32, help='batch size of train input data')
+parser.add_argument('--patience', type=int, default=3, help='early stopping patience')
+parser.add_argument('--lr', type=float, default=0.001, help='optimizer learning rate')
+parser.add_argument('--loss', type=str, default='mse', help='loss function')
+parser.add_argument('--weight_decay', type=float, default=0.0001, help='weight decay')
 
-    test_data = data[target_column][test_border1:test_border2].reset_index(drop=True)
+# GPU
+parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
+parser.add_argument('--gpu', type=int, default=0, help='gpu')
+parser.add_argument('--use_multi_gpu', action='store_true', help='use multiple gpus', default=False)
+parser.add_argument('--devices', type=str, default='0,1,2,3', help='device ids of multile gpus')
+parser.add_argument('--test_flop', action='store_true', default=False, help='See utils/tools for usage')
 
-    return train_data, val_data, test_data
+args = parser.parse_args()
 
+args.use_gpu = True if torch.cuda.is_available() and args.use_gpu else False
 
-def create_sequence(data, sequence_window, forecasting_horizon):
-    x_seq_data = []
-    y_seq_data = []
-    for i in range(data.shape[0] - sequence_window - forecasting_horizon):
-        train_seq = data.iloc[i:i + sequence_window]
-        train_label = data.iloc[i + sequence_window:i + sequence_window + forecasting_horizon]
-        x_seq_data.append(TimeSeries.from_dataframe(train_seq, time_col='datetime'))
-        y_seq_data.append(TimeSeries.from_dataframe(train_label, time_col='datetime'))
+if args.use_gpu and args.use_multi_gpu:
+    args.dvices = args.devices.replace(' ', '')
+    device_ids = args.devices.split(',')
+    args.device_ids = [int(id_) for id_ in device_ids]
+    args.gpu = args.device_ids[0]
 
-    return x_seq_data, y_seq_data
-
-
-def run_baseline_experiment(data, input_len, model_name, output_len, parameters):
-    print("Running testing", model_name, "on", data, "with", input_len, "and", output_len, 'with', parameters)
-    print("Loading the data")
-    full_dataset = pd.read_parquet(data)
-    full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
-
-    columns = full_dataset.columns
-    raw_columns = list(filter(lambda c: c[-1] == 'R', columns))
-    raw_columns = ['datetime'] + raw_columns
-    temp_full_dataset = full_dataset[raw_columns].copy()
-    all_train_data, all_val_data, all_test_data = temporal_train_val_test_split(temp_full_dataset, input_len)
-
-    print('train size', all_train_data[0].shape)
-    print(all_train_data[0].head())
-    x_train = TimeSeries.from_dataframe(all_train_data[0], time_col='datetime')
-
-    print('val size', all_val_data[0].shape)
-    print(all_val_data[0].head())
-    x_val = TimeSeries.from_dataframe(all_val_data[0], time_col='datetime')
-
-    scaler = Scaler(StandardScaler())
-    x_train = scaler.fit_transform(x_train)
-    x_val = scaler.transform(x_val)
-
-    lr_scheduler_cls = StepLR
-    lr_scheduler_kwargs = {'step_size': 2, 'gamma': 0.5}
-
-    random_state = np.random.randint(1000)
-
-    model_name = "_".join([model_name + str(random_state),
-                           data.split('/')[-1],
-                           str(input_len),
-                           str(output_len)] +
-                          [str(e) for e in list(parameters.values())] +
-                          ['eb_0.0'])
-
-
-    torch_device_str = 'cpu'
-    n_epochs = 10
-    optimizer_kwargs = {"lr": 1e-4, 'weight_decay': parameters['weight_decay']}
-
-    target_model = 'transformer'
-    model = Transformer(input_len,
-                        output_len,
-                        parameters,
-                        n_epochs,
-                        optimizer_kwargs,
-                        random_state,
-                        torch_device_str,
-                        lr_scheduler_cls,
-                        lr_scheduler_kwargs,
-                        model_name)
-
-    print("Training")
-    model.train(x_train, x_val)
-
-    print("Testing")
-
-    for eb in [0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 65, 80]:
-        if eb != 0:
-            if data.find('sz') != -1:
-                eb = eb * 0.01
-                eb_error_columns = list(filter(lambda c: c.split('-')[-1] == f'E{eb}', columns))
-            else:
-                eb_error_columns = list(filter(lambda c: c.split('-')[-1] == f'E{eb}', columns))
-
-            eb_error_columns.append('datetime')
-            temp_full_dataset = full_dataset[eb_error_columns].copy()
-            _, _, all_test_data = temporal_train_val_test_split(temp_full_dataset, input_len, ot=f'OT-E{eb}')
-            model_name = "_".join([model_name + str(random_state),
-                                   'ettm',
-                                   str(input_len),
-                                   str(output_len)] +
-                                  [str(e) for e in list(parameters.values())] +
-                                  ['eb', str(eb)])
-
-        print('test size', all_test_data[0].shape)
-        print(all_test_data[0].head())
-        x_test = TimeSeries.from_dataframe(all_test_data[0], time_col='datetime')
-        x_test = scaler.transform(x_test)
-
-        raw_p_values = model.predict(x_test)
-
-        seq_x_test, seq_y_test = create_sequence(all_test_data[0], input_len, output_len)
-
-        print("Computing metrics")
-
-        raw_y_values = np.asarray([scaler.transform(e).all_values() for e in seq_y_test]).squeeze()
-
-        results = {
-            "MAE": np.round(MAE(raw_y_values, raw_p_values), 4),
-            "MSE": np.round(MSE(raw_y_values, raw_p_values), 4),
-            "RMSE": np.round(RMSE(raw_y_values, raw_p_values), 4)
-        }
-
-        print("Results", results)
-
-        results_root = f"../output/{target_model}/"
-
-        type_results = 'train_raw_test_dec/'
-
-        pd.DataFrame(results, index=[0]).to_csv(results_root + "results/" + type_results + f"testing_{model_name}.csv", index=None)
-
-        with open(results_root + f"predictions/" + type_results + f"/testing_{model_name}_output.pickle", 'wb') as f:
-            pkl.dump(raw_p_values, f)
-
-        with open(results_root + f"predictions/" + type_results + f"testing_{model_name}_true.pickle", 'wb') as f:
-            pkl.dump(raw_y_values, f)
-
-        model.save(results_root + "models/" + type_results + f"testing_{model_name}.pth.tar")
-
+print('Args in experiment:')
+print(args)
 
 if __name__ == "__main__":
-
-    parameters = {}
-    input_len = 96
-    output_len = 24
-    eb = 0.0
-
-    parameters['weight_decay'] = 0.0001
-    train_raw = True
-    str_train = 'raw' if train_raw else 'dec'
+    # input_len = 96
+    # output_len = 24
+    # eb = 0.0
+    str_train = 'raw' if args.train_raw else 'dec'
     np.random.seed(42)
 
-    d_model = 32
-    dropout = 0.0
-    n_head = 8
-    num_enc_dec_layers = 2
-    dim_feedforward = 64
-    for exp in range(10):
-        parameters['d_model'] = d_model
-        parameters['num_encoder_layers'] = num_enc_dec_layers
-        parameters['num_decoder_layers'] = num_enc_dec_layers
-        parameters['dim_feedforward'] = dim_feedforward
-        parameters['dropout'] = dropout
-        parameters['nhead'] = n_head
-        data = '../data/compressed/sz/ETTm1.parquet'
-        run_baseline_experiment(data,
-                                input_len,
-                                f'ettm1_sz_{str_train}_train_transformer_exp_{exp}_rnd_',
-                                output_len, parameters)
-        data = '../data/compressed/pmc/ETTm1.parquet'
-        run_baseline_experiment(data,
-                                input_len,
-                                f'ettm1_pmc_{str_train}_train_transformer_exp_{exp}_rnd_',
-                                output_len,
-                                parameters)
-        data = '../data/compressed/swing/ETTm1.parquet'
-        run_baseline_experiment(data,
-                                input_len,
-                                f'ettm1_swing_{str_train}_train_transformer_exp_{exp}_rnd_',
-                                output_len,
-                                parameters)
+    # d_model = 32
+    # dropout = 0.0
+    # n_head = 8
+    # num_enc_dec_layers = 2
+    # dim_feedforward = 64
+
+    exp = Exp_Main(args)
+    for itr in range(10):
+        data = '../data/compressed/sz/' + args.data_path  # 'ETTm1.parquet'
+        exp.run_exp(data, f'{args.data_path}_sz_{str_train}_train_transformer_exp_{itr}_rnd_')
+        data = '../data/compressed/pmc/' + args.data_path
+        exp.run_exp(data, f'{args.data_path}_pmc_{str_train}_train_transformer_exp_{itr}_rnd_')
+        data = '../data/compressed/swing/' + args.data_path
+        exp.run_exp(data, f'{args.data_path}_swing_{str_train}_train_transformer_exp_{itr}_rnd_')
 

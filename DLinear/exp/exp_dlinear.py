@@ -1,4 +1,4 @@
-from data_provider.data_factory import data_provider
+from data.data_factory import data_provider
 from exp_basic import Exp_Basic
 from DLinear.components.model import Model
 from utils.tools import EarlyStopping, adjust_learning_rate
@@ -176,8 +176,8 @@ class Exp_Main(Exp_Basic):
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
-            vali_loss = self.vali(vali_data, vali_loader, criterion)
-            test_loss = self.vali(test_data, test_loader, criterion)
+            vali_loss = self.val(vali_data, vali_loader, criterion)
+            test_loss = self.val(test_data, test_loader, criterion)
 
             print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
                 epoch + 1, train_steps, train_loss, vali_loss, test_loss))

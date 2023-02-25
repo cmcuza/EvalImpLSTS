@@ -74,3 +74,15 @@ class StandardScaler():
     
     def get_param(self):
         return self.mean, self.std
+
+
+def create_sequence(data, sequence_window, forecasting_horizon):
+    x_seq_data = []
+    y_seq_data = []
+    for i in range(data.shape[0] - sequence_window - forecasting_horizon):
+        train_seq = data.iloc[i:i + sequence_window]
+        train_label = data.iloc[i + sequence_window:i + sequence_window + forecasting_horizon]
+        x_seq_data.append(TimeSeries.from_dataframe(train_seq, time_col='datetime'))
+        y_seq_data.append(TimeSeries.from_dataframe(train_label, time_col='datetime'))
+
+    return x_seq_data, y_seq_data

@@ -25,7 +25,7 @@ class Exp_Basic(object):
     def _get_data(self, flag):
         pass
 
-    def val(self, vali_data, vali_loader, criterion):
+    def val(self, val_data, val_loader, criterion):
         pass
 
     def train(self, setting):
