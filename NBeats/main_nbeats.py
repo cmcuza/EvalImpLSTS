@@ -3,7 +3,7 @@ from os.path import join
 import torch
 import random
 import numpy as np
-from Transformer.exp.exp_transformer import ExpMain
+from NBeats.exp.exp_nbeats import ExpMain
 
 
 fix_seed = 42
@@ -11,13 +11,13 @@ random.seed(fix_seed)
 torch.manual_seed(fix_seed)
 np.random.seed(fix_seed)
 
-parser = argparse.ArgumentParser(description='Transformer family for Time Series Forecasting')
+parser = argparse.ArgumentParser(description='NBeats family for Time Series Forecasting')
 
 # basic config
 parser.add_argument('--train_raw', type=bool, default=True, help='train on raw time series')
 parser.add_argument('--exp_id', type=str, required=True, default='test', help='model id')
-parser.add_argument('--model', type=str, default='Transformer', help='model name, options: [Autoformer, Informer, Transformer]')
-parser.add_argument('--output_root', type=str, default=join('..', 'output', 'transformer'), help='results folder')
+parser.add_argument('--model', type=str, default='NBeats', help='model name, options: [NBeats]')
+parser.add_argument('--output_root', type=str, default=join('..', 'output', 'nbeats'), help='results folder')
 # data loader
 parser.add_argument('--root_path', type=str, default=join('..', 'data', 'compressed'), help='root path of the data file')
 parser.add_argument('--data', type=str, required=True, default='ETTm1.parquet', help='data file')
@@ -33,11 +33,10 @@ parser.add_argument('--output_len', type=int, default=24, help='prediction seque
 parser.add_argument('--target_var', type=str, required=True, default='OT', help='target variable in the dataset')
 parser.add_argument('--EB', type=list, default=[0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 65, 80], help='error bounds to run the experiments on')
 # Model
-parser.add_argument('--d_model', type=int, default=32, help='hidden layers dimension')
-parser.add_argument('--n_heads', type=int, default=8, help='num of heads')
-parser.add_argument('--e_layers', type=int, default=2, help='num of encoder layers')
-parser.add_argument('--d_layers', type=int, default=2, help='num of decoder layers')
-parser.add_argument('--d_ff', type=int, default=64, help='dimension of fcn')
+parser.add_argument('--num_stacks', type=int, default=15, help='hidden layers dimension')
+parser.add_argument('--num_blocks', type=int, default=1, help='num of heads')
+parser.add_argument('--num_layers', type=int, default=4, help='num of encoder layers')
+parser.add_argument('--layer_widths', type=int, default=64, help='num of decoder layers')
 parser.add_argument('--dropout', type=float, default=0.0, help='dropout')
 
 # optimization
@@ -75,9 +74,9 @@ if __name__ == "__main__":
     exp = ExpMain(args)
     for itr in range(10):
         data = join(args.root_path, 'sz', args.data)
-        exp.run_exp(data, f'{args.data}_sz_{str_train}_train_transformer_exp_{itr}_rnd_')
+        exp.run_exp(data, f'{args.data}_sz_{str_train}_train_nbeats_exp_{itr}_rnd_')
         data = join(args.root_path, 'pmc', args.data)
-        exp.run_exp(data, f'{args.data}_pmc_{str_train}_train_transformer_exp_{itr}_rnd_')
+        exp.run_exp(data, f'{args.data}_pmc_{str_train}_train_nbeats_exp_{itr}_rnd_')
         data = join(args.root_path, 'swing', args.data)
-        exp.run_exp(data, f'{args.data}_swing_{str_train}_train_transformer_exp_{itr}_rnd_')
+        exp.run_exp(data, f'{args.data}_swing_{str_train}_train_nbeats_exp_{itr}_rnd_')
 

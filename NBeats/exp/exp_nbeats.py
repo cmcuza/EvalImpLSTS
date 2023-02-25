@@ -4,7 +4,7 @@ from darts import TimeSeries
 import pandas as pd
 import pickle as pkl
 from data.data_factory import data_provider
-from Transformer.components.model import Transformer
+from NBeats.components.model import NBeats
 from darts.dataprocessing.transformers import Scaler
 from sklearn.preprocessing import StandardScaler
 from torch.optim.lr_scheduler import StepLR
@@ -175,15 +175,15 @@ class ExpMain:
         torch_device_str = 'cuda' if self.args.use_gpu else 'cpu'
         optimizer_kwargs = {"lr": self.parameters['lr'], 'weight_decay': self.parameters['weight_decay']}
 
-        model = Transformer(self.input_len,
-                            self.output_len,
-                            self.parameters,
-                            self.args.train_epochs,
-                            optimizer_kwargs,
-                            self.random_state,
-                            torch_device_str,
-                            lr_scheduler_cls,
-                            lr_scheduler_kwargs,
-                            new_model_name)
+        model = NBeats(self.input_len,
+                       self.output_len,
+                       self.parameters,
+                       self.args.train_epochs,
+                       optimizer_kwargs,
+                       self.random_state,
+                       torch_device_str,
+                       lr_scheduler_cls,
+                       lr_scheduler_kwargs,
+                       new_model_name)
 
         return model

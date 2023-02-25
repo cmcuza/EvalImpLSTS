@@ -13,9 +13,9 @@ scaler = None
 
 class CompressedDataset(Dataset):
     def __init__(self, root_path, flag, features, data_path, target, scale, inverse, timeenc, freq, eb, train_raw):
-        self.seq_len = 24 * 4 * 4
-        self.label_len = 24 * 4
-        self.pred_len = 24 * 4
+        self.seq_len = 24 * 4
+        self.label_len = 24 * 2
+        self.pred_len = 24
 
         # init
         assert flag in ['train', 'test', 'val']

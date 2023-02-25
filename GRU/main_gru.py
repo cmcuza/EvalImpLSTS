@@ -3,7 +3,7 @@ from os.path import join
 import torch
 import random
 import numpy as np
-from Transformer.exp.exp_transformer import ExpMain
+from GRU.exp.exp_gru import ExpMain
 
 
 fix_seed = 42
@@ -11,13 +11,13 @@ random.seed(fix_seed)
 torch.manual_seed(fix_seed)
 np.random.seed(fix_seed)
 
-parser = argparse.ArgumentParser(description='Transformer family for Time Series Forecasting')
+parser = argparse.ArgumentParser(description='GRU family for Time Series Forecasting')
 
 # basic config
 parser.add_argument('--train_raw', type=bool, default=True, help='train on raw time series')
 parser.add_argument('--exp_id', type=str, required=True, default='test', help='model id')
-parser.add_argument('--model', type=str, default='Transformer', help='model name, options: [Autoformer, Informer, Transformer]')
-parser.add_argument('--output_root', type=str, default=join('..', 'output', 'transformer'), help='results folder')
+parser.add_argument('--model', type=str, default='GRU', help='model name, options: [Autoformer, Informer, Transformer]')
+parser.add_argument('--output_root', type=str, default=join('..', 'output', 'gru'), help='results folder')
 # data loader
 parser.add_argument('--root_path', type=str, default=join('..', 'data', 'compressed'), help='root path of the data file')
 parser.add_argument('--data', type=str, required=True, default='ETTm1.parquet', help='data file')
@@ -75,9 +75,9 @@ if __name__ == "__main__":
     exp = ExpMain(args)
     for itr in range(10):
         data = join(args.root_path, 'sz', args.data)
-        exp.run_exp(data, f'{args.data}_sz_{str_train}_train_transformer_exp_{itr}_rnd_')
+        exp.run_exp(data, f'{args.data}_sz_{str_train}_train_gru_exp_{itr}_rnd_')
         data = join(args.root_path, 'pmc', args.data)
-        exp.run_exp(data, f'{args.data}_pmc_{str_train}_train_transformer_exp_{itr}_rnd_')
+        exp.run_exp(data, f'{args.data}_pmc_{str_train}_train_gru_exp_{itr}_rnd_')
         data = join(args.root_path, 'swing', args.data)
-        exp.run_exp(data, f'{args.data}_swing_{str_train}_train_transformer_exp_{itr}_rnd_')
+        exp.run_exp(data, f'{args.data}_swing_{str_train}_train_gru_exp_{itr}_rnd_')
 
