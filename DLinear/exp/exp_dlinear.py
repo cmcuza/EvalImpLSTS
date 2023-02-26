@@ -177,7 +177,7 @@ class ExpMain(ExpBasic):
         # inputx = inputx.reshape(-1, inputx.shape[-2], inputx.shape[-1])
 
         # result save
-        folder_path = os.path.join('..', 'output', setting)
+        folder_path = os.path.join('..', 'output', 'DLinear', setting)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 

@@ -177,7 +177,7 @@ class ExpInformer(ExpBasic):
 
             adjust_learning_rate(model_optim, epoch+1, self.args)
             
-        best_model_path = path+'/'+'checkpoint.pth'
+        best_model_path = path+os.path.sep+'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
         
         return self.model
@@ -208,7 +208,7 @@ class ExpInformer(ExpBasic):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        mae, mse, rmse, mape, mspe, rse = metric(preds, trues)
+        mae, mse, rmse, mape, mspe, rse, corr = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))
 
         np.save(folder_path+os.path.sep+'metrics.npy', np.array([mae, mse, rmse, mape, mspe, rse]))
@@ -246,11 +246,11 @@ class ExpInformer(ExpBasic):
 
         # setting = setting.replace('eb0.0', f'eb{eb}')
         # result save
-        folder_path = os.path.join('..', 'output', setting)
+        folder_path = os.path.join('..', 'output', 'Informer', setting)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        mae, mse, rmse, mape, mspe, rse = metric(preds, trues)
+        mae, mse, rmse, mape, mspe, rse, corr = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))
 
         np.save(folder_path+os.path.sep+'metrics.npy', np.array([mae, mse, rmse, mape, mspe, rse]))

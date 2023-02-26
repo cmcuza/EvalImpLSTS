@@ -19,4 +19,3 @@ The goal of this project is to provide a comprehensive evaluation of the impact 
 1. Run the code with the command `bash script/run.sh`.
 2. Once the script has finished executing, you can view the output in the output folder.
 
-
