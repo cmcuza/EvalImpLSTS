@@ -18,12 +18,11 @@ class ExpMain:
         self.ot = args.target_var
         self.parameters = dict()
         self.parameters['weight_decay'] = args.weight_decay
-        self.parameters['d_model'] = args.d_model
-        self.parameters['num_encoder_layers'] = args.e_layers
-        self.parameters['num_decoder_layers'] = args.d_layers
-        self.parameters['dim_feedforward'] = args.d_ff
+        self.parameters['num_stacks'] = args.num_stacks
+        self.parameters['num_blocks'] = args.num_blocks
+        self.parameters['num_layers'] = args.num_layers
+        self.parameters['layer_widths'] = args.layer_widths
         self.parameters['dropout'] = args.dropout
-        self.parameters['nhead'] = args.n_heads
         self.parameters['lr'] = args.lr
         self.args = args
         if self.args.data.find('ETT') != -1:

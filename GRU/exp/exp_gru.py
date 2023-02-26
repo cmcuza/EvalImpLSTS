@@ -17,14 +17,11 @@ class ExpMain:
         self.output_len = args.output_len
         self.ot = args.target_var
         self.parameters = dict()
-        self.parameters['weight_decay'] = args.weight_decay
-        self.parameters['d_model'] = args.d_model
-        self.parameters['num_encoder_layers'] = args.e_layers
-        self.parameters['num_decoder_layers'] = args.d_layers
-        self.parameters['dim_feedforward'] = args.d_ff
+        self.parameters['hidden_dim'] = args.hidden_dim
+        self.parameters['n_rnn_layers'] = args.n_rnn_layers
         self.parameters['dropout'] = args.dropout
-        self.parameters['nhead'] = args.n_heads
         self.parameters['lr'] = args.lr
+        self.parameters['weight_decay'] = args.weight_decay
         self.args = args
         if self.args.data.find('ETT') != -1:
             self.fixed_borders = True

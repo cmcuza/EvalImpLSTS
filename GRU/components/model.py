@@ -21,8 +21,6 @@ class GRU:
             input_chunk_length=input_len,
             output_chunk_length=output_len,
             model='GRU',
-            d_model=parameters['d_model'],
-            nhead=parameters['nhead'],
             n_rnn_layers=parameters['n_rnn_layers'],
             dropout=parameters['dropout'],
             hidden_dim=parameters['hidden_dim'],

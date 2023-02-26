@@ -15,7 +15,6 @@ parser = argparse.ArgumentParser(description='GRU family for Time Series Forecas
 
 # basic config
 parser.add_argument('--train_raw', type=bool, default=True, help='train on raw time series')
-parser.add_argument('--exp_id', type=str, required=True, default='test', help='model id')
 parser.add_argument('--model', type=str, default='GRU', help='model name, options: [Autoformer, Informer, Transformer]')
 parser.add_argument('--output_root', type=str, default=join('..', 'output', 'gru'), help='results folder')
 # data loader
@@ -33,11 +32,8 @@ parser.add_argument('--output_len', type=int, default=24, help='prediction seque
 parser.add_argument('--target_var', type=str, required=True, default='OT', help='target variable in the dataset')
 parser.add_argument('--EB', type=list, default=[0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 65, 80], help='error bounds to run the experiments on')
 # Model
-parser.add_argument('--d_model', type=int, default=32, help='hidden layers dimension')
-parser.add_argument('--n_heads', type=int, default=8, help='num of heads')
-parser.add_argument('--e_layers', type=int, default=2, help='num of encoder layers')
-parser.add_argument('--d_layers', type=int, default=2, help='num of decoder layers')
-parser.add_argument('--d_ff', type=int, default=64, help='dimension of fcn')
+parser.add_argument('--hidden_dim', type=int, default=32, help='hidden layers dimension')
+parser.add_argument('--n_rnn_layers', type=int, default=2, help='num of heads')
 parser.add_argument('--dropout', type=float, default=0.0, help='dropout')
 
 # optimization

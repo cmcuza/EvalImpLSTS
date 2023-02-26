@@ -24,7 +24,6 @@ class NBeats:
             num_blocks=parameters['num_blocks'],
             num_layers=parameters['num_layers'],
             layer_widths=parameters['layer_widths'],
-            dropout=parameters['dropout'],
             n_epochs=n_epochs,
             batch_size=32,
             nr_epochs_val_period=1,

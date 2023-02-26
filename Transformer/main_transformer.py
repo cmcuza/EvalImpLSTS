@@ -15,7 +15,6 @@ parser = argparse.ArgumentParser(description='Transformer family for Time Series
 
 # basic config
 parser.add_argument('--train_raw', type=bool, default=True, help='train on raw time series')
-parser.add_argument('--exp_id', type=str, required=True, default='test', help='model id')
 parser.add_argument('--model', type=str, default='Transformer', help='model name, options: [Autoformer, Informer, Transformer]')
 parser.add_argument('--output_root', type=str, default=join('..', 'output', 'transformer'), help='results folder')
 # data loader

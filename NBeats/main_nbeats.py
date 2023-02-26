@@ -15,7 +15,6 @@ parser = argparse.ArgumentParser(description='NBeats family for Time Series Fore
 
 # basic config
 parser.add_argument('--train_raw', type=bool, default=True, help='train on raw time series')
-parser.add_argument('--exp_id', type=str, required=True, default='test', help='model id')
 parser.add_argument('--model', type=str, default='NBeats', help='model name, options: [NBeats]')
 parser.add_argument('--output_root', type=str, default=join('..', 'output', 'nbeats'), help='results folder')
 # data loader
