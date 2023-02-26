@@ -1,32 +1,33 @@
 import argparse
 import torch
 import numpy as np
-
-from exp.exp_informer import Exp_Informer
+from os.path import join
+from exp.exp_informer import ExpInformer
 
 parser = argparse.ArgumentParser(description='[Informer] Long Sequences Forecasting')
 
-parser.add_argument('--model', type=str, required=True, default='informer', help='model of experiment, options: [informer, informerstack, informerlight(TBD)]')
+parser.add_argument('--model', type=str, default='informer', help='model of experiment, options: [informer, informerstack, informerlight(TBD)]')
 
 parser.add_argument('--data', type=str, required=True, default='ettp', help='data')
-parser.add_argument('--root_path', type=str, default='./data/compressed/piecewise/', help='root path of the data file')
+parser.add_argument('--root_path', type=str, default=join('..', 'data', 'compressed'), help='root path of the data file')
 parser.add_argument('--data_path', type=str, default='ett.parquet', help='data file')
+parser.add_argument('--eblc', type=str, default='pmc', help='error bound lossy compressor')
 parser.add_argument('--features', type=str, default='M', help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
 parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
 parser.add_argument('--eb', type=float, default=0.0, help='compression error bound')
 parser.add_argument('--freq', type=str, default='h', help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
 parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
-
-parser.add_argument('--train_raw', type=int, help='wheter to train on raw data or decompressed data')
+parser.add_argument('--EB', type=list, default=[0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 65, 80], help='error bounds to run the experiments on')
+parser.add_argument('--train_raw', type=int, help='whether to train on raw data or decompressed data')
 
 parser.add_argument('--seq_len', type=int, default=96, help='input sequence length of Informer encoder')
 parser.add_argument('--label_len', type=int, default=48, help='start token length of Informer decoder')
 parser.add_argument('--pred_len', type=int, default=24, help='prediction sequence length')
 # Informer decoder input: concat[start token series(label_len), zero padding series(pred_len)]
 
-parser.add_argument('--enc_in', type=int, default=7, help='encoder input size')
-parser.add_argument('--dec_in', type=int, default=7, help='decoder input size')
-parser.add_argument('--c_out', type=int, default=7, help='output size')
+parser.add_argument('--enc_in', type=int, default=1, help='encoder input size')
+parser.add_argument('--dec_in', type=int, default=1, help='decoder input size')
+parser.add_argument('--c_out', type=int, default=1, help='output size')
 parser.add_argument('--d_model', type=int, default=512, help='dimension of model')
 parser.add_argument('--n_heads', type=int, default=8, help='num of heads')
 parser.add_argument('--e_layers', type=int, default=2, help='num of encoder layers')
@@ -49,7 +50,7 @@ parser.add_argument('--mix', action='store_false', help='use mix attention in ge
 parser.add_argument('--cols', type=str, nargs='+', help='certain cols from the data files as the input features')
 parser.add_argument('--num_workers', type=int, default=0, help='data loader num workers')
 parser.add_argument('--itr', type=int, default=2, help='experiments times')
-parser.add_argument('--train_epochs', type=int, default=6, help='train epochs')
+parser.add_argument('--train_epochs', type=int, default=1, help='train epochs')
 parser.add_argument('--batch_size', type=int, default=32, help='batch size of train input data')
 parser.add_argument('--patience', type=int, default=3, help='early stopping patience')
 parser.add_argument('--learning_rate', type=float, default=0.0001, help='optimizer learning rate')
@@ -63,7 +64,7 @@ parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
 parser.add_argument('--gpu', type=int, default=0, help='gpu')
 parser.add_argument('--use_multi_gpu', action='store_true', help='use multiple gpus', default=False)
 parser.add_argument('--devices', type=str, default='0,1,2,3', help='device ids of multile gpus')
-parser.add_argument('--few', type=bool, default=False, help='Consider only 2 or 4 temporal features')
+parser.add_argument('--few', type=bool, default=True, help='Consider only 2 or 4 temporal features')
 
 args = parser.parse_args()
 
@@ -82,7 +83,6 @@ data_parser = {
     'ettm2': {'data': 'ettm2.parquet', 'T': 'OT', 'M': [7, 7, 7], 'S': [1, 1, 1], 'MS': [7, 7, 1]},
     'solar': {'data': 'solar.parquet', 'T': '136', 'M': [137, 137, 137], 'S': [1, 1, 1], 'MS': [137, 137, 1]},
     'weather': {'data': 'weather.parquet', 'T': 'OT', 'M': [22, 22, 22], 'S': [1, 1, 1], 'MS': [22, 22, 1]},
-    'weather_aster': {'data': 'weather_aster.parquet', 'T': 'OT', 'M': [22, 22, 22], 'S': [1, 1, 1], 'MS': [22, 22, 1]},
     'wind': {'data': 'wind.parquet', 'T': 'active_power', 'M': [10, 10, 10], 'S': [1, 1, 1], 'MS': [10, 10, 1]},
 
 }
@@ -99,10 +99,10 @@ args.freq = args.freq[-1:]
 print('Args in experiment:')
 print(args)
 
-Exp = Exp_Informer
+Exp = ExpInformer
 exp = None
 for ii in range(args.itr):
-    for eb in [0.0, 1.0, 3.0, 5.0, 7.0, 10.0, 15.0, 20.0, 25.0, 30.0, 40.0, 50.0, 65.0, 80.0]:
+    for eb in args.EB:
         setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_at{}_fc{}_eb{}_dt{}_mx{}_eb{}_train_raw{}_{}_{}'.format(args.model,
                                                                                                                 args.data,
                                                                                                                 args.features,
@@ -131,10 +131,12 @@ for ii in range(args.itr):
             print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
             exp.test(setting)
         else:
-            if args.data.find('sz') != -1:
-                 eb = np.round(eb*0.01, 4) 
-            print('>>>>>>>predicting eb_{}: {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(eb, setting))
-            exp.predict(setting, eb)
+            for eblc in ['pmc', 'swing', 'sz']:
+                args.eblc = eblc
+                if eblc == 'sz':
+                    eb = np.round(eb * 0.01, 4)
+                print('>>>>>>>predicting eb_{}: {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(eb, setting))
+                exp.predict(setting, eb=eb)
 
     torch.cuda.empty_cache()
         

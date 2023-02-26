@@ -1,3 +1,5 @@
+#!/bin/bash
+
 
 python  Transformer/main_transformer.py --exp_id ettm1_transformer --data ettm1_output_data_points.parquet --target_var OT --d_model 32 --n_heads 8 --e_layers 2 --d_layers 2 --d_ff 64
 

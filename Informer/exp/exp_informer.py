@@ -1,5 +1,5 @@
 from data.data_loader import ETT, Solar, Weather, Wind
-from exp_basic import Exp_Basic
+from exp_basic import ExpBasic
 from Informer.components.model import Informer
 
 from utils.tools import EarlyStopping, adjust_learning_rate
@@ -19,9 +19,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-class Exp_Informer(Exp_Basic):
+class ExpInformer(ExpBasic):
     def __init__(self, args):
-        super(Exp_Informer, self).__init__(args)
+        super(ExpInformer, self).__init__(args)
     
     def _build_model(self):
         model_dict = {
@@ -62,15 +62,15 @@ class Exp_Informer(Exp_Basic):
     def _get_data(self, flag):
         args = self.args
         data_dict = {
-            'ETTm1': ETT,
-            'ETTm2': ETT,
-            'Solar': Solar,
-            'Weather': Weather,
-            'Wind': Wind,
+            'ettm1': ETT,
+            'ettm2': ETT,
+            'solar': Solar,
+            'weather': Weather,
+            'wind': Wind,
         }
 
         Data = data_dict[self.args.data.split('_')[0]]
-        timeenc = 0 if args.embed != 'timeF' else 1
+        # timeenc = 0 if args.embed != 'timeF' else 1
 
         if flag == 'test':
             shuffle_flag = False; drop_last = True; batch_size = args.batch_size; freq=args.freq
@@ -81,18 +81,14 @@ class Exp_Informer(Exp_Basic):
             shuffle_flag = True; drop_last = True; batch_size = args.batch_size; freq=args.freq
 
         data_set = Data(
-            root_path=args.root_path,
-            data_path=args.data_path,
+            root_path=args.root_path+os.path.sep+args.eblc,
+            data=args.data,
             flag=flag,
             size=[args.seq_len, args.label_len, args.pred_len],
             features=args.features,
             target=args.target,
-            inverse=args.inverse,
-            timeenc=timeenc,
             freq=freq,
-            cols=args.cols,
-            eb=args.eb,
-            train_raw=args.train_raw
+            eb=args.eb
         )
         print(flag, len(data_set))
         data_loader = DataLoader(
@@ -141,9 +137,6 @@ class Exp_Informer(Exp_Basic):
         model_optim = self._select_optimizer()
         criterion = self._select_criterion()
 
-        if self.args.use_amp:
-            scaler = torch.cuda.amp.GradScaler()
-
         for epoch in range(self.args.train_epochs):
             iter_count = 0
             train_loss = []
@@ -167,13 +160,8 @@ class Exp_Informer(Exp_Basic):
                     iter_count = 0
                     time_now = time.time()
                 
-                if self.args.use_amp:
-                    scaler.scale(loss).backward()
-                    scaler.step(model_optim)
-                    scaler.update()
-                else:
-                    loss.backward()
-                    model_optim.step()
+                loss.backward()
+                model_optim.step()
 
             print("Epoch: {} cost time: {}".format(epoch+1, time.time()-epoch_time))
             train_loss = np.average(train_loss)
@@ -194,7 +182,7 @@ class Exp_Informer(Exp_Basic):
         
         return self.model
 
-    def test(self, setting):
+    def test(self, setting, test=0):
         test_data, test_loader = self._get_data(flag='test')
         
         self.model.eval()
@@ -216,16 +204,16 @@ class Exp_Informer(Exp_Basic):
         print('test shape:', preds.shape, trues.shape)
 
         # result save
-        folder_path = './results/' + setting +'/'
+        folder_path = os.path.join('..', 'output', 'Informer',  setting)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
         mae, mse, rmse, mape, mspe, rse = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))
 
-        np.save(folder_path+'metrics.npy', np.array([mae, mse, rmse, mape, mspe, rse]))
-        np.save(folder_path+'pred.npy', preds)
-        np.save(folder_path+'true.npy', trues)
+        np.save(folder_path+os.path.sep+'metrics.npy', np.array([mae, mse, rmse, mape, mspe, rse]))
+        np.save(folder_path+os.path.sep+'pred.npy', preds)
+        np.save(folder_path+os.path.sep+'true.npy', trues)
 
         return
 
@@ -235,7 +223,7 @@ class Exp_Informer(Exp_Basic):
         
         if load:
             path = os.path.join(self.args.checkpoints, setting)
-            best_model_path = path+'/'+'checkpoint.pth'
+            best_model_path = path+os.path.sep+'checkpoint.pth'
             self.model.load_state_dict(torch.load(best_model_path))
 
         self.model.eval()
@@ -258,16 +246,16 @@ class Exp_Informer(Exp_Basic):
 
         # setting = setting.replace('eb0.0', f'eb{eb}')
         # result save
-        folder_path = './results/' + setting + '/'
+        folder_path = os.path.join('..', 'output', setting)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
         mae, mse, rmse, mape, mspe, rse = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))
 
-        np.save(folder_path+'metrics.npy', np.array([mae, mse, rmse, mape, mspe, rse]))
-        np.save(folder_path+'pred.npy', preds)
-        np.save(folder_path+'true.npy', trues)
+        np.save(folder_path+os.path.sep+'metrics.npy', np.array([mae, mse, rmse, mape, mspe, rse]))
+        np.save(folder_path+os.path.sep+'pred.npy', preds)
+        np.save(folder_path+os.path.sep+'true.npy', trues)
         
         self.args.eb = 0.0
 

@@ -31,6 +31,7 @@ parser.add_argument('--input_len', type=int, default=96, help='input sequence le
 parser.add_argument('--output_len', type=int, default=24, help='prediction sequence length')
 parser.add_argument('--target_var', type=str, required=True, default='OT', help='target variable in the dataset')
 parser.add_argument('--EB', type=list, default=[0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 65, 80], help='error bounds to run the experiments on')
+
 # Model
 parser.add_argument('--d_model', type=int, default=32, help='hidden layers dimension')
 parser.add_argument('--n_heads', type=int, default=8, help='num of heads')

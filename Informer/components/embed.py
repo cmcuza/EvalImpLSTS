@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 import math
 
+
 class PositionalEmbedding(nn.Module):
     def __init__(self, d_model, max_len=5000):
         super(PositionalEmbedding, self).__init__()
@@ -23,6 +24,7 @@ class PositionalEmbedding(nn.Module):
     def forward(self, x):
         return self.pe[:, :x.size(1)]
 
+
 class TokenEmbedding(nn.Module):
     def __init__(self, c_in, d_model):
         super(TokenEmbedding, self).__init__()
@@ -36,6 +38,7 @@ class TokenEmbedding(nn.Module):
     def forward(self, x):
         x = self.tokenConv(x.permute(0, 2, 1)).transpose(1,2)
         return x
+
 
 class FixedEmbedding(nn.Module):
     def __init__(self, c_in, d_model):
@@ -55,6 +58,7 @@ class FixedEmbedding(nn.Module):
 
     def forward(self, x):
         return self.emb(x).detach()
+
 
 class TemporalEmbedding(nn.Module):
     def __init__(self, d_model, embed_type='fixed', freq='h'):
@@ -82,8 +86,9 @@ class TemporalEmbedding(nn.Module):
         
         return hour_x + weekday_x + day_x + month_x + minute_x
 
+
 class TimeFeatureEmbedding(nn.Module):
-    def __init__(self, d_model, embed_type='timeF', freq='h', few=False):
+    def __init__(self, d_model, embed_type='timeF', freq='h', few=True):
         super(TimeFeatureEmbedding, self).__init__()
 
         freq_map = {'h':4, 't':5, 's':6, 'm':1, 'a':1, 'w':2, 'd':3, 'b':3}
@@ -96,8 +101,9 @@ class TimeFeatureEmbedding(nn.Module):
     def forward(self, x):
         return self.embed(x)
 
+
 class DataEmbedding(nn.Module):
-    def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1, few=False):
+    def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1, few=True):
         super(DataEmbedding, self).__init__()
 
         self.value_embedding = TokenEmbedding(c_in=c_in, d_model=d_model)

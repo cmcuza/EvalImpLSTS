@@ -12,10 +12,10 @@ scaler = None
 
 
 class CompressedDataset(Dataset):
-    def __init__(self, root_path, flag, features, data_path, target, scale, inverse, timeenc, freq, eb, train_raw):
-        self.seq_len = 24 * 4
-        self.label_len = 24 * 2
-        self.pred_len = 24
+    def __init__(self, root_path, flag, features, data_path, size, target, freq, eb, train_raw):
+        self.seq_len = size[0]
+        self.label_len = size[1]
+        self.pred_len = size[2]
 
         # init
         assert flag in ['train', 'test', 'val']
@@ -29,14 +29,11 @@ class CompressedDataset(Dataset):
         self.criterio = (eb == 0 or self.set_type in [0, 1]) if train_raw == 1 else eb == 0
         self.features = features
         self.target = target + ('-R' if self.criterio else f'-E{eb}')
-        self.scale = scale
-        self.inverse = inverse
-        self.timeenc = timeenc
         self.freq = freq
         self.eb = eb
 
         self.root_path = root_path
-        self.data_path = data_path
+        self.data = data_path
         self.__read_data__()
 
     def __getitem__(self, index):
@@ -60,9 +57,7 @@ class CompressedDataset(Dataset):
 
     def filter_df_raw(self, df_raw, columns):
         if self.criterio:
-            raw_columns = list(filter(lambda c: c[-1] == 'R', columns))
-            raw_columns.append('datetime')
-            df_raw = df_raw[raw_columns]
+            eb_error_columns = list(filter(lambda c: c[-1] == 'R', columns))
         else:
             if self.eb < 1:
                 eb_error_columns = list(filter(lambda c: float(
@@ -75,9 +70,10 @@ class CompressedDataset(Dataset):
                     re.findall('\d+', c.split('-')[-1])[-1] if len(
                         re.findall('\d+', c.split('-')[-1])) > 0 else -1) == self.eb,
                                                columns))
-            eb_error_columns.append('datetime')
 
-            df_raw = df_raw[eb_error_columns]
+        eb_error_columns = ['datetime'] + eb_error_columns
+
+        df_raw = df_raw[eb_error_columns]
 
         return df_raw
 
@@ -98,20 +94,19 @@ class CompressedDataset(Dataset):
 class ETT(CompressedDataset):
     def __init__(self, root_path,
                  flag='train',
+                 size=(96, 48, 24),
                  features='S',
-                 data_path='ettm1.parquet',
+                 data='ettm1.parquet',
                  target='OT',
-                 scale=True,
-                 inverse=False,
-                 timeenc=0,
                  freq='t',
                  eb=0,
                  train_raw=0):
 
-        super().__init__(root_path, flag, features, data_path, target, scale, inverse, timeenc, freq, eb, train_raw)
+        super().__init__(root_path, flag, features, data, size, target, freq, eb, train_raw)
 
     def __read_data__(self):
-        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data_path))
+        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
+        df_raw = df_raw[:10000]  # just for testing, delete
 
         df_raw['datetime'] = pd.to_datetime(df_raw['datetime'], unit=self.unit)
 
@@ -123,8 +118,11 @@ class ETT(CompressedDataset):
 
         print('LOG: Data type', self.set_type, 'with columns', df_raw.columns, 'with target', self.target)
 
-        border1s = [0, 12 * 30 * 24 * 4 - self.seq_len, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4 - self.seq_len]
-        border2s = [12 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 8 * 30 * 24 * 4]
+        # border1s = [0, 12 * 30 * 24 * 4 - self.seq_len, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4 - self.seq_len]
+        # border2s = [12 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 8 * 30 * 24 * 4]
+        border1s = [0, 7000 - self.seq_len, 8000 - self.seq_len]
+        border2s = [7000, 8000, 10000]
+
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
 
@@ -140,7 +138,7 @@ class ETT(CompressedDataset):
 
         df_stamp = df_raw[['datetime']][border1:border2]
         df_stamp['datetime'] = pd.to_datetime(df_stamp.datetime)
-        data_stamp = time_features(df_stamp, timeenc=self.timeenc, freq=self.freq)
+        data_stamp = time_features(df_stamp)
 
         self.data_x = data[border1:border2]
         self.data_y = data[border1:border2]
@@ -150,20 +148,19 @@ class ETT(CompressedDataset):
 class Weather(CompressedDataset):
     def __init__(self, root_path,
                  flag='train',
+                 size=(96, 48, 24),
                  features='S',
-                 data_path='weather.parquet',
+                 data='weather.parquet',
                  target='OT',
                  scale=True,
-                 inverse=False,
-                 timeenc=0,
                  freq='t',
                  eb=0,
                  train_raw=0):
 
-        super().__init__(root_path, flag, features, data_path, target, scale, inverse, timeenc, freq, eb, train_raw)
+        super().__init__(root_path, flag, features, data, size, target, scale, freq, eb, train_raw)
 
     def __read_data__(self):
-        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data_path))
+        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
 
         df_raw['datetime'] = pd.to_datetime(df_raw['datetime'], unit=self.unit)
 
@@ -208,20 +205,19 @@ class Weather(CompressedDataset):
 class Solar(CompressedDataset):
     def __init__(self, root_path,
                  flag='train',
+                 size=(96, 48, 24),
                  features='M',
-                 data_path='solar.parquet',
+                 data='solar.parquet',
                  scale=True,
-                 inverse=False,
-                 timeenc=0,
                  freq='t',
                  eb=0,
                  train_raw=0,
                  target=''):
 
-        super().__init__(root_path, flag, features, data_path, target, scale, inverse, timeenc, freq, eb, train_raw)
+        super().__init__(root_path, flag, features, data, size, target, scale, freq, eb, train_raw)
 
     def __read_data__(self):
-        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data_path))
+        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
 
         df_raw['datetime'] = pd.to_datetime(df_raw['datetime'])
         print(df_raw.head())
@@ -257,19 +253,18 @@ class Solar(CompressedDataset):
 class Wind(CompressedDataset):
     def __init__(self, root_path,
                  flag='train',
+                 size=(96, 48, 24),
                  features='MS',
-                 data_path='wind.parquet',
+                 data='wind.parquet',
                  target='active_power',
                  scale=True,
-                 inverse=False,
-                 timeenc=0,
                  freq='t',
                  eb=0,
                  train_raw=0):
-        super().__init__(root_path, flag, features, data_path, target, scale, inverse, timeenc, freq, eb, train_raw)
+        super().__init__(root_path, flag, features, data, size, target, scale, freq, eb, train_raw)
 
     def __read_data__(self):
-        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data_path))
+        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
 
         df_raw['datetime'] = pd.to_datetime(df_raw['datetime'], unit=self.unit)
 
