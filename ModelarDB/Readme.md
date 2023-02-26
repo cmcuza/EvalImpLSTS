@@ -26,3 +26,8 @@ To compress a time series using ModelarDB, you can use the following command:
    * C: runs PMC
    * L: runs SWING
    * G: runs GORILLA
+
+
+## Reference
+
+To learn more about ModelarDB, check out the [ModelarDB repository](https://github.com/skejserjensen/ModelarDB) on GitHub.
