@@ -1,3 +1,5 @@
+import os
+
 from darts.models import RNNModel
 import numpy as np
 
@@ -16,7 +18,6 @@ class GRU:
 
         self.input_len = input_len
         self.output_len = output_len
-
         self.model = RNNModel(
             input_chunk_length=input_len,
             output_chunk_length=output_len,

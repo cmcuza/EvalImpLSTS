@@ -8,7 +8,7 @@ Before you can install Libpressio and run Squeeze, you'll need to make sure that
 
 - Linux Ubuntu operating system
 - CMake version 3.8 or higher
-- GCC or Clang compiler
+- GCC 
 - Git
 
 ## Installation
