@@ -12,7 +12,7 @@ scaler = None
 
 
 class CompressedDataset(Dataset):
-    def __init__(self, root_path, flag, features, data_path, size, target, freq, eb, train_raw):
+    def __init__(self, root_path, flag, features, data_path, size, target, freq, eb):
         self.seq_len = size[0]
         self.label_len = size[1]
         self.pred_len = size[2]
@@ -26,7 +26,7 @@ class CompressedDataset(Dataset):
             eb = int(eb)
 
         self.unit = None if root_path.find('sz') != -1 else 'ms'
-        self.criterio = (eb == 0 or self.set_type in [0, 1]) if train_raw == 1 else eb == 0
+        self.criterio = (eb == 0 or self.set_type in [0, 1])
         self.features = features
         self.target = target + ('-R' if self.criterio else f'-E{eb}')
         self.freq = freq
@@ -99,10 +99,9 @@ class ETT(CompressedDataset):
                  data='ettm1.parquet',
                  target='OT',
                  freq='t',
-                 eb=0,
-                 train_raw=0):
+                 eb=0):
 
-        super().__init__(root_path, flag, features, data, size, target, freq, eb, train_raw)
+        super().__init__(root_path, flag, features, data, size, target, freq, eb)
 
     def __read_data__(self):
         df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
@@ -152,12 +151,10 @@ class Weather(CompressedDataset):
                  features='S',
                  data='weather.parquet',
                  target='OT',
-                 scale=True,
                  freq='t',
-                 eb=0,
-                 train_raw=0):
+                 eb=0):
 
-        super().__init__(root_path, flag, features, data, size, target, scale, freq, eb, train_raw)
+        super().__init__(root_path, flag, features, data, size, target, freq, eb)
 
     def __read_data__(self):
         df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
@@ -192,7 +189,7 @@ class Weather(CompressedDataset):
 
         df_stamp = df_raw[['datetime']][border1:border2]
         df_stamp['datetime'] = pd.to_datetime(df_stamp.datetime)
-        data_stamp = time_features(df_stamp, timeenc=self.timeenc, freq=self.freq, few=True)
+        data_stamp = time_features(df_stamp)
         print('Data stamp shape', data_stamp.shape)
         self.data_x = data[border1:border2]
 
@@ -208,13 +205,11 @@ class Solar(CompressedDataset):
                  size=(96, 48, 24),
                  features='M',
                  data='solar.parquet',
-                 scale=True,
                  freq='t',
                  eb=0,
-                 train_raw=0,
                  target=''):
 
-        super().__init__(root_path, flag, features, data, size, target, scale, freq, eb, train_raw)
+        super().__init__(root_path, flag, features, data, size, target, freq, eb)
 
     def __read_data__(self):
         df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
@@ -243,7 +238,7 @@ class Solar(CompressedDataset):
 
         df_stamp = df_raw[['datetime']][border1:border2]
         df_stamp['datetime'] = pd.to_datetime(df_stamp.datetime)
-        data_stamp = time_features(df_stamp, timeenc=self.timeenc, freq=self.freq, few=True)
+        data_stamp = time_features(df_stamp)
 
         self.data_x = data[border1:border2]
         self.data_y = data[border1:border2]
@@ -257,11 +252,9 @@ class Wind(CompressedDataset):
                  features='MS',
                  data='wind.parquet',
                  target='active_power',
-                 scale=True,
                  freq='t',
-                 eb=0,
-                 train_raw=0):
-        super().__init__(root_path, flag, features, data, size, target, scale, freq, eb, train_raw)
+                 eb=0):
+        super().__init__(root_path, flag, features, data, size, target, freq, eb)
 
     def __read_data__(self):
         df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
@@ -298,7 +291,7 @@ class Wind(CompressedDataset):
 
         df_stamp = df_raw[['datetime']][border1:border2]
         df_stamp['datetime'] = pd.to_datetime(df_stamp.datetime, unit='ms')
-        data_stamp = time_features(df_stamp, timeenc=self.timeenc, freq=self.freq, few=True)
+        data_stamp = time_features(df_stamp)
 
         self.data_x = data[border1:border2]
 

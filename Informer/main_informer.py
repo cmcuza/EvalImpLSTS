@@ -7,7 +7,7 @@ def main_informer(args):
     data_parser = {
         'ettm1': {'data': 'ettm1.parquet', 'T': 'OT', 'M': [7, 7, 7], 'S': [1, 1, 1], 'MS': [7, 7, 1]},
         'ettm2': {'data': 'ettm2.parquet', 'T': 'OT', 'M': [7, 7, 7], 'S': [1, 1, 1], 'MS': [7, 7, 1]},
-        'solar': {'data': 'solar.parquet', 'T': '136', 'M': [137, 137, 137], 'S': [1, 1, 1], 'MS': [137, 137, 1]},
+        'solar': {'data': 'solar.parquet', 'T': '', 'M': [137, 137, 137], 'S': [1, 1, 1], 'MS': [137, 137, 1]},
         'weather': {'data': 'weather.parquet', 'T': 'OT', 'M': [22, 22, 22], 'S': [1, 1, 1], 'MS': [22, 22, 1]},
         'wind': {'data': 'wind.parquet', 'T': 'active_power', 'M': [10, 10, 10], 'S': [1, 1, 1], 'MS': [10, 10, 1]},
 
@@ -29,6 +29,7 @@ def main_informer(args):
     exp = None
     for ii in range(args.itr):
         for eb in args.EB:
+            args.eb = eb
             setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_at{}_fc{}_eb{}_dt{}_mx{}_eb{}_train_raw{}_{}_{}'.format(args.model_id,
                                                                                                                     args.dataset,
                                                                                                                     args.features,

@@ -66,7 +66,7 @@ class ExpInformer(ExpBasic):
             'wind': Wind,
         }
 
-        Data = data_dict[self.args.data.split('_')[0]]
+        Data = data_dict[self.args.dataset]
         # timeenc = 0 if args.embed != 'timeF' else 1
 
         if flag == 'test':
@@ -83,7 +83,7 @@ class ExpInformer(ExpBasic):
             flag=flag,
             size=[args.seq_len, args.label_len, args.pred_len],
             features=args.features,
-            target=args.target,
+            target=args.target_var,
             freq=freq,
             eb=args.eb
         )

@@ -1,8 +1,16 @@
 import numpy as np
 
 
+def R(x):
+    return np.abs(x.max()-x.min())
+
+
 def RSE(pred, true):
     return np.sqrt(np.sum((true-pred)**2)) / np.sqrt(np.sum((true-true.mean())**2))
+
+
+def NRMSE(pred, true):
+    return RMSE(pred, true)/R(true)
 
 
 def CORR(pred, true):
@@ -48,7 +56,11 @@ def ACE(pred, true, lag=1):
     return np.corrcoef(np.array([error[:-lag], error[lag:]]))[0, 1]
 
 
-def metric(pred, true):
+def PSNR(pred, true):
+    return 20*np.log10(R(true)/RMSE(pred, true))
+
+
+def metrics(pred, true):
     mae = MAE(pred, true)
     mse = MSE(pred, true)
     rmse = RMSE(pred, true)

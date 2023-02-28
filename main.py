@@ -25,7 +25,6 @@ parser.add_argument('--data', type=str, required=True, default='ettm1', help='da
 parser.add_argument('--root_path', type=str, default=join('.', 'data', 'compressed'), help='root path of the data file')
 parser.add_argument('--eblc', type=str, default='pmc', help='error bound lossy compressor')
 parser.add_argument('--features', type=str, default='S', help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
-parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
 parser.add_argument('--freq', type=str, default='h', help='freq for time features encoding, options:'
                                                           '[s:secondly, t:minutely, h:hourly, '
                                                           'd:daily, b:business days, '

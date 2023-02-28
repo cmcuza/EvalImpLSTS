@@ -34,13 +34,23 @@ python  ../main.py --model_id gru --exp_id weather_gru --data weather_output_dat
 python  ../main.py --model_id gru --exp_id wind_gru --data wind_output_data_points.parquet --target_var active_power --n_rnn_layers 2 --hidden_dim 64 --dropout 0.05
 
 
-python ../main.py --model_id dlinear  --data ettm1_output_data_points.parquet
+python ../main.py --model_id dlinear  --data ettm1_output_data_points.parquet --target_var OT
 
-python ../main.py --model_id dlinear  --data ettm2_output_data_points.parquet
+python ../main.py --model_id dlinear  --data ettm2_output_data_points.parquet --target_var OT
 
-python ../main.py --model_id dlinear  --data solar_output_data_points.parquet
+python ../main.py --model_id dlinear  --data solar_output_data_points.parquet --target_var OT
 
-python ../main.py --model_id dlinear  --data weather_output_data_points.parquet
+python ../main.py --model_id dlinear  --data weather_output_data_points.parquet --target_var OT
 
-python ../main.py --model_id dlinear  --data wind_output_data_points.parquet
+python -u ../main.py --model_id dlinear  --data wind_output_data_points.parquet --target_var active_power
 
+
+python -u ../main.py --model_id informer --data ettm1_output_data_points.parquet  --target_var OT --features S --seq_len 96 --label_len 48 --pred_len 24 --e_layers 2 --d_layers 1 --attn prob --des 'Exp' --itr 10
+
+python -u ../main.py --model_id informer --data ettm2_output_data_points.parquet  --target_var OT --features S --seq_len 96 --label_len 48 --pred_len 24 --e_layers 2 --d_layers 1 --attn prob --des 'Exp' --itr 10
+
+python -u ../main.py --model_id informer --data solar_output_data_points.parquet  --target_var OT --features M --seq_len 96 --label_len 48 --pred_len 24 --e_layers 2 --d_layers 1 --attn prob --des 'Exp' --itr 10
+
+python -u ../main.py --model_id informer --data weather_output_data_points.parquet  --target_var OT --features S --seq_len 96 --label_len 48 --pred_len 24 --e_layers 2 --d_layers 1 --attn prob --des 'Exp' --itr 10
+
+python -u ../main.py --model_id informer --data wind_output_data_points.parquet  --target_var active_power --features S --seq_len 96 --label_len 48 --pred_len 24 --e_layers 2 --d_layers 1 --attn prob --des 'Exp' --itr 10
