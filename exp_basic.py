@@ -32,8 +32,6 @@ class ExpBasic(object):
             os.makedirs(join(self.args.output_root, 'models'))
             os.makedirs(join(self.args.output_root, 'metrics'))
 
-        # self.model = self._build_model().to(self.device)
-
     def _build_model(self):
         raise NotImplementedError
 

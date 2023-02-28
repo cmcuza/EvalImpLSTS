@@ -22,14 +22,11 @@ warnings.filterwarnings('ignore')
 class ExpInformer(ExpBasic):
     def __init__(self, args):
         super(ExpInformer, self).__init__(args)
+        self.model = self._build_model().to(self.device)
     
     def _build_model(self):
-        model_dict = {
-            'informer': Informer,
-        }
 
-        e_layers = self.args.e_layers if self.args.model == 'informer' else self.args.s_layers
-        model = model_dict[self.args.model](
+        model = Informer(
                 self.args.enc_in,
                 self.args.dec_in, 
                 self.args.c_out, 
@@ -38,8 +35,8 @@ class ExpInformer(ExpBasic):
                 self.args.pred_len, 
                 self.args.factor,
                 self.args.d_model, 
-                self.args.n_heads, 
-                e_layers, # self.args.e_layers,
+                self.args.n_heads,
+                self.args.e_layers,
                 self.args.d_layers, 
                 self.args.d_ff,
                 self.args.dropout, 
@@ -286,8 +283,6 @@ class ExpInformer(ExpBasic):
                 outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
             else:
                 outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
-        if self.args.inverse:
-            outputs = dataset_object.inverse_transform(outputs)
         
         f_dim = dataset_object.target_index if self.args.features == 'MS' else 0
         until = outputs.shape[-1] if self.args.features == 'M' else 1

@@ -29,7 +29,7 @@ def main_informer(args):
     exp = None
     for ii in range(args.itr):
         for eb in args.EB:
-            setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_at{}_fc{}_eb{}_dt{}_mx{}_eb{}_train_raw{}_{}_{}'.format(args.model,
+            setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_at{}_fc{}_eb{}_dt{}_mx{}_eb{}_train_raw{}_{}_{}'.format(args.model_id,
                                                                                                                     args.data,
                                                                                                                     args.features,
                                                                                                                     args.seq_len,

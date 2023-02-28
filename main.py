@@ -70,6 +70,11 @@ parser.add_argument('--padding', type=int, default=0, help='padding type')
 parser.add_argument('--distil', action='store_false',
                     help='whether to use distilling in encoder, using this argument means not using distilling',
                     default=True)
+parser.add_argument('--attn', type=str, default='prob', help='attention used in encoder, options:[prob, full]')
+parser.add_argument('--embed', type=str, default='timeF',
+                    help='time features encoding, options:[timeF, fixed, learned]')
+parser.add_argument('--mix', action='store_false', help='use mix attention in generative decoder', default=True)
+
 
 parser.add_argument('--activation', type=str, default='gelu', help='activation')
 parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
@@ -99,6 +104,7 @@ parser.add_argument('--loss', type=str, default='mse', help='loss function')
 parser.add_argument('--lradj', type=str, default='type1', help='adjust learning rate')
 parser.add_argument('--use_amp', action='store_true', help='use automatic mixed precision training', default=False)
 parser.add_argument('--dropout', type=float, default=0.0, help='dropout')
+
 
 # GPU
 parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')

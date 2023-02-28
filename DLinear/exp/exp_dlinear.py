@@ -20,6 +20,7 @@ warnings.filterwarnings('ignore')
 class ExpMain(ExpBasic):
     def __init__(self, args):
         super(ExpMain, self).__init__(args)
+        self.model = self._build_model().to(self.device)
 
     def _build_model(self):
 
