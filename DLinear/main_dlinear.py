@@ -11,7 +11,7 @@ def main_dlinear(args):
             args.eb = eb
             setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_{}_it_{}_eb_{}'.format(
                     args.model_id,
-                    args.data,
+                    args.dataset,
                     args.features,
                     args.seq_len,
                     args.label_len,

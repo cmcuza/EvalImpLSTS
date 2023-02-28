@@ -43,6 +43,11 @@ def MSPE(pred, true):
     return np.mean(np.square((pred - true) / true))
 
 
+def ACE(pred, true, lag=1):
+    error = np.abs(pred-true)
+    return np.corrcoef(np.array([error[:-lag], error[lag:]]))[0, 1]
+
+
 def metric(pred, true):
     mae = MAE(pred, true)
     mse = MSE(pred, true)

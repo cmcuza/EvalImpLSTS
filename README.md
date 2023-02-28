@@ -15,6 +15,15 @@ The goal of this project is to provide a comprehensive evaluation of the impact 
 3. Create a new conda environment with the required dependencies using `conda env create -f environment.yml`.
 4. Activate the new environment with `conda activate environment_name`.
 
+
+## Folder structure
+
+- `ModelarDB` - contains ModelarDB extended implementation of PMC and SWING 
+- `Libpressio` - contains Libpressio python wrapper of Squeeze.
+- `GRU, Informer, NBeats, DLinear and Transformer` - contains the code with these models components and initialization
+- `scripts` - contains bash script to run forecasting experiments
+- `data` - contains prepared datasets
+
 ## Running the Code
 1. Run the code with the command `bash script/run.sh`.
 2. Once the script has finished executing, you can view the output in the output folder.
