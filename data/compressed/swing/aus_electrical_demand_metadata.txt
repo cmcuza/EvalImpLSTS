@@ -1,0 +1,32 @@
+1800000
+
+1 dk.aau.modelardb.core.models.UncompressedModelType
+2 dk.aau.modelardb.core.models.SwingFilterModelType
+
+1 y-E0.7
+2 y-E35.0
+3 y-E40.0
+4 y-E45.0
+5 y-E3.0
+6 y-E50.0
+7 y-E55.0
+8 y-E60.0
+9 y-E65.0
+10 y-E70.0
+11 y-E75.0
+12 y-E5.0
+13 y-E80.0
+14 y-E85.0
+15 y-E90.0
+16 y-E95.0
+17 y-E100.0
+18 y-E7.0
+19 y-E0.3
+20 y-E0.5
+21 y-E0.1
+22 y-E10.0
+23 y-E15.0
+24 y-E1.0
+25 y-E20.0
+26 y-E25.0
+27 y-E30.0

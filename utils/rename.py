@@ -18,6 +18,7 @@ def rename(root_path, old, new, re=''):
                 count += 1
     print(count, 'files changed')
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', help='root dir')

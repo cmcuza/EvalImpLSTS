@@ -1,5 +1,5 @@
 import os
-from data.data_loader import ETT, Solar, Wind, Weather
+from data.data_loader import ETT, Solar, Wind, Weather, AUSElecDem
 
 from torch.utils.data import DataLoader
 
@@ -9,6 +9,7 @@ data_dict = {
     'solar': Solar,
     'weather': Weather,
     'wind': Wind,
+    'aus': AUSElecDem
 }
 
 

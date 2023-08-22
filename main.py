@@ -1,8 +1,9 @@
-from DLinear.main_dlinear import main_dlinear
-from GRU.main_gru import main_gru
-from NBeats.main_nbeats import main_nbeats
-from Transformer.main_transformer import main_transformer
-from Informer.main_informer import main_informer
+from forecasting.DLinear.main_dlinear import main_dlinear
+from forecasting.GRU.main_gru import main_gru
+from forecasting.NBeats.main_nbeats import main_nbeats
+from forecasting.Transformer.main_transformer import main_transformer
+from forecasting.ARIMA.main_arima import main_arima
+from forecasting.Informer.main_informer import main_informer
 from os.path import join
 import argparse
 import torch
@@ -92,8 +93,8 @@ parser.add_argument('--layer_widths', type=int, default=64, help='num of decoder
 
 # optimization
 parser.add_argument('--num_workers', type=int, default=1, help='data loader num workers')
-parser.add_argument('--itr', type=int, default=10, help='experiments times')
-parser.add_argument('--train_epochs', type=int, default=10, help='train epochs')
+parser.add_argument('--itr', type=int, default=5, help='experiments times')
+parser.add_argument('--train_epochs', type=int, default=1, help='train epochs')
 parser.add_argument('--batch_size', type=int, default=32, help='batch size of train input data')
 parser.add_argument('--patience', type=int, default=3, help='early stopping patience')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='optimizer learning rate')
@@ -129,6 +130,8 @@ print(args)
 args.dataset = args.data.split('_')[0]
 
 if __name__ == '__main__':
+    if args.model_id == 'arima':
+        main_arima(args)
     if args.model_id == 'dlinear':
         main_dlinear(args)
     elif args.model_id == 'nbeats':

@@ -301,3 +301,65 @@ class Wind(CompressedDataset):
 
         self.data_stamp = data_stamp
 
+
+class AUSElecDem(CompressedDataset):
+    def __init__(self, root_path,
+                 flag='train',
+                 size=(96, 48, 24),
+                 features='S',
+                 data='aus_electrical_demand.parquet',
+                 target='y',
+                 freq='30T',
+                 eb=0):
+        eb = float(eb)
+        super().__init__(root_path, flag, features, data, size, target, freq, eb)
+
+    def __read_data__(self):
+        df_raw = pd.read_parquet(os.path.join(self.root_path, self.data))
+
+        df_raw['datetime'] = pd.to_datetime(df_raw['datetime'], unit=self.unit)
+
+        # columns = df_raw.columns
+
+        # df_raw = self.filter_df_raw(df_raw, columns)
+
+        print('LOG: Data type', self.set_type, 'with columns', df_raw.columns, 'with target', self.target)
+
+        num_train = int(len(df_raw) * 0.01)
+        num_test = int(len(df_raw) * 0.01)
+        num_vali = int(len(df_raw)*0.03 - num_train - num_test)
+        border1s = [0, num_train - self.seq_len, len(df_raw) - num_test - self.seq_len]
+        border2s = [num_train, num_train + num_vali, len(df_raw)]
+        border1 = border1s[self.set_type]
+        border2 = border2s[self.set_type]
+
+        print(border1s)
+        print(border2s)
+
+        df_data = None
+
+        if self.features == 'MS':
+            cols_data = df_raw.columns[:-1]
+            df_data = df_raw[cols_data]
+        elif self.features == 'S':
+            try:
+                df_data = df_raw[[self.target]]
+            except KeyError:
+                self.target = self.target.split('-')[0] + ('-R' if self.criterio else f'-E{float(self.eb)}')
+                df_data = df_raw[[self.target]]
+
+        self.target_index = np.where(df_data.columns.values == self.target)[0][0]
+        data = self.scale(df_data, border1s, border2s)
+
+        df_stamp = df_raw[['datetime']][border1:border2]
+        df_stamp['datetime'] = pd.to_datetime(df_stamp.datetime, unit='ms')
+        data_stamp = time_features(df_stamp)
+
+        self.data_x = data[border1:border2]
+
+        print('Data size', self.data_x.shape)
+
+        self.data_y = data[border1:border2]
+
+        self.data_stamp = data_stamp
+

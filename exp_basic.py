@@ -5,6 +5,7 @@ import pandas as pd
 import pickle as pkl
 from utils.metrics import *
 from darts import TimeSeries
+from darts.metrics import mse
 from data.data_factory import data_provider
 from darts.dataprocessing.transformers import Scaler
 from sklearn.preprocessing import StandardScaler
@@ -24,13 +25,13 @@ class ExpBasic(object):
             self.fixed_borders = False
 
         self.model_name = ''
+        self.model = None
         self.device = self._acquire_device()
 
-        if not os.path.isdir(self.args.output_root):
-            os.makedirs(self.args.output_root)
-            os.makedirs(join(self.args.output_root, 'predictions'))
-            os.makedirs(join(self.args.output_root, 'models'))
-            os.makedirs(join(self.args.output_root, 'metrics'))
+        for eblc in ['pmc', 'swing', 'sz']:
+            os.makedirs(join(self.args.output_root, args.model_id, args.dataset, eblc, 'predictions'), exist_ok=True)
+            os.makedirs(join(self.args.output_root, args.model_id, args.dataset, eblc, 'models'), exist_ok=True)
+            os.makedirs(join(self.args.output_root, args.model_id, args.dataset, eblc, 'metrics'), exist_ok=True)
 
     def _build_model(self):
         raise NotImplementedError
@@ -64,6 +65,9 @@ class ExpBasic(object):
         train_border2 = border2s[0]
         target_column = ['datetime', self.ot + '-' + eb]
 
+        if target_column[1] not in data:
+            target_column[1] = self.ot + '-' + float(eb)
+
         train_data = data[target_column][train_border1:train_border2].reset_index(drop=True)
 
         val_border1 = border1s[1]
@@ -92,6 +96,12 @@ class ExpBasic(object):
     def val(self, val_data, val_loader, criterion):
         pass
 
+    def change_hyperparameters(self):
+        yield None
+
+    def set_best_hyperparameter(self, index):
+        pass
+
     def train(self, setting):
         pass
 
@@ -100,10 +110,10 @@ class ExpBasic(object):
 
     def run_exp(self, data, model_name):
         print("Running testing", model_name, "on", data, "with", self.seq_len, "and", self.pred_len)
-        self.model_name = model_name
+
         print("Loading the data")
         full_dataset = pd.read_parquet(data)
-        full_dataset = full_dataset[:10000]  # delete
+        # full_dataset = full_dataset[:10000]  # delete
         full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
 
         columns = full_dataset.columns
@@ -122,14 +132,18 @@ class ExpBasic(object):
         x_train = scaler.fit_transform(x_train)
         x_val = scaler.transform(x_val)
 
-        model = self._build_model()
+        if not self.model:
+            self.model_name = model_name
+            self.model = self._build_model()
+            print("Training")
+            self.model.train(x_train, x_val)
 
-        print("Training")
-
-        model.train(x_train, x_val)
+        seq_x_test, seq_y_test = self.create_sequence(test_data)
+        raw_y_values = np.asarray([scaler.transform(e).all_values() for e in seq_y_test]).squeeze()
 
         for eb in self.args.EB:
             print('Predicting with epsilon=', eb)
+
             if eb != 0:
                 if data.find('sz') != -1:
                     eb = eb * 0.01
@@ -137,24 +151,22 @@ class ExpBasic(object):
 
                 eb_error_columns.append('datetime')
                 temp_full_dataset = full_dataset[eb_error_columns].copy()
-                _, _, all_test_data = self.temporal_train_val_test_split(temp_full_dataset, f'E{eb}')
+                _, _, compressed_test_data = self.temporal_train_val_test_split(temp_full_dataset, f'E{eb}')
+            else:
+                compressed_test_data = test_data
 
-            print('test size', test_data.shape)
-            x_test = TimeSeries.from_dataframe(test_data, time_col='datetime')
+            print('test size', compressed_test_data.shape)
+            x_test = TimeSeries.from_dataframe(compressed_test_data, time_col='datetime')
             x_test = scaler.transform(x_test)
 
-            raw_p_values = model.predict(x_test)
-
-            seq_x_test, seq_y_test = self.create_sequence(test_data)
+            predictions = self.model.predict(x_test)
 
             print("Computing metrics")
 
-            raw_y_values = np.asarray([scaler.transform(e).all_values() for e in seq_y_test]).squeeze()
-
             results = {
-                "MAE": np.round(MAE(raw_y_values, raw_p_values), 4),
-                "MSE": np.round(MSE(raw_y_values, raw_p_values), 4),
-                "RMSE": np.round(RMSE(raw_y_values, raw_p_values), 4)
+                "MAE": np.round(MAE(raw_y_values, predictions), 4),
+                "MSE": np.round(MSE(raw_y_values, predictions), 4),
+                "RMSE": np.round(RMSE(raw_y_values, predictions), 4)
             }
 
             print("Results", results)
@@ -162,16 +174,62 @@ class ExpBasic(object):
             print('Storing the results')
 
             new_model_name = "_".join([self.model_name]+['eb', str(eb)])
+            output_path = join(self.args.output_root, self.args.model_id, self.args.dataset, self.args.eblc)
 
-            pd.DataFrame(results, index=[0]).to_csv(join(self.args.output_root, 'metrics', f"testing_{new_model_name}.csv"), index=False)
+            pd.DataFrame(results, index=[0]).to_csv(join(output_path, 'metrics', f"testing_{new_model_name}.csv"), index=False)
+            with open(join(output_path, "predictions", f"testing_{new_model_name}_output.pickle"), 'wb') as f:
+                pkl.dump(predictions, f)
 
-            with open(join(self.args.output_root, "predictions", f"testing_{new_model_name}_output.pickle"), 'wb') as f:
-                pkl.dump(raw_p_values, f)
-
-            model.save(join(self.args.output_root, "models", f"testing_{new_model_name}.pth.tar"))
+            self.model.save(join(output_path, "models", f"testing_{new_model_name}.pth.tar"))
 
     def _get_data(self, flag):
         data_set, data_loader = data_provider(self.args, flag)
         return data_set, data_loader
+
+    def find_hyperparameters(self, data_path, model_name):
+        print("Running hyperparameter fitting", model_name, "on", data_path, "with", self.seq_len, "and", self.pred_len)
+
+        print("Loading the data")
+        full_dataset = pd.read_parquet(data_path)
+        full_dataset = full_dataset[:len(full_dataset)//4]  # delete
+        full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
+
+        columns = full_dataset.columns
+        raw_columns = list(filter(lambda c: c[-1] == 'R', columns))
+        raw_columns = ['datetime'] + raw_columns
+        temp_full_dataset = full_dataset[raw_columns].copy()
+        train_data, val_data, _ = self.temporal_train_val_test_split(temp_full_dataset, eb='R')
+
+        print('train size', train_data.shape)
+        x_train = TimeSeries.from_dataframe(train_data, time_col='datetime')
+
+        print('val size', val_data.shape)
+        x_val = TimeSeries.from_dataframe(val_data, time_col='datetime')
+
+        scaler = Scaler(StandardScaler())
+        x_train = scaler.fit_transform(x_train)
+        x_val = scaler.transform(x_val)
+        seq_x_val, seq_y_val = self.create_sequence(val_data)
+        y_val = np.asarray([e.all_values() for e in seq_y_val]).squeeze()
+        min_error = np.inf
+        min_hyper = -1
+        for i in self.change_hyperparameters():
+            print("Training combination", i)
+            self.model_name = model_name
+            self.model = self._build_model()
+            self.model.train(x_train, x_val)
+            pred = self.model.predict(x_val)
+            error = MSE(y_val, pred)
+            if error < min_error:
+                min_error = error
+                min_hyper = i
+
+        self.set_best_hyperparameter(min_hyper)
+
+
+
+
+
+
 
 
