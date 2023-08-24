@@ -19,7 +19,7 @@ class ExpBasic(object):
         self.pred_len = args.pred_len
         self.ot = args.target_var
         self.random_state = np.random.randint(1000)
-        if self.args.data.find('ETT') != -1:
+        if self.args.data.find('ett') != -1:
             self.fixed_borders = True
         else:
             self.fixed_borders = False
@@ -50,10 +50,10 @@ class ExpBasic(object):
     def temporal_train_val_test_split(self, data, eb):
 
         if self.fixed_borders:
-            # border1s = [0, 12 * 30 * 24 * 4 - self.seq_len, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4 - self.seq_len]
-            # border2s = [12 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 8 * 30 * 24 * 4]
-            border1s = [0, 6000 - self.seq_len, 8000 - self.seq_len]
-            border2s = [6000, 8000, 10000]
+            border1s = [0, 12 * 30 * 24 * 4 - self.seq_len, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4 - self.seq_len]
+            border2s = [12 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 8 * 30 * 24 * 4]
+            # border1s = [0, 6000 - self.seq_len, 8000 - self.seq_len]
+            # border2s = [6000, 8000, 10000]
         else:
             num_train = int(len(data) * 0.7)
             num_test = int(len(data) * 0.2)
@@ -113,7 +113,7 @@ class ExpBasic(object):
 
         print("Loading the data")
         full_dataset = pd.read_parquet(data)
-        # full_dataset = full_dataset[:10000]  # delete
+        full_dataset = full_dataset[:1000]  # delete
         full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
 
         columns = full_dataset.columns
@@ -147,6 +147,10 @@ class ExpBasic(object):
             if eb != 0:
                 if data.find('sz') != -1:
                     eb = eb * 0.01
+
+                if data.find('aus') != -1:
+                    eb = float(eb)
+
                 eb_error_columns = list(filter(lambda c: c.split('-')[-1] == f'E{eb}', columns))
 
                 eb_error_columns.append('datetime')

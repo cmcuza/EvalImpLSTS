@@ -1,0 +1,2 @@
+GRU: {'hidden_dim': 64, 'n_rnn_layers': 3, 'dropout': 0.05}
+Transformer: {'d_model': 64, 'num_encoder_layers': 2, 'num_decoder_layers': 2, 'dim_feedforward': 512, 'dropout': 0.05, 'nhead': 8}

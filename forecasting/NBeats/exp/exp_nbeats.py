@@ -6,8 +6,8 @@ from itertools import product
 
 class ExpNBeats(ExpBasic):
     def __init__(self, args):
-
         super().__init__(args)
+        # {'num_stacks': 30, 'num_blocks': 2, 'num_layers': 4, 'layer_widths': 32, 'dropout': 0}
         self.parameters['weight_decay'] = args.weight_decay
         self.parameters['num_stacks'] = args.num_stacks
         self.parameters['num_blocks'] = args.num_blocks

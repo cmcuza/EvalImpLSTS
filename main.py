@@ -42,7 +42,7 @@ parser.add_argument('--label_len', type=int, default=48, help='start token lengt
 parser.add_argument('--pred_len', type=int, default=24, help='prediction sequence length')
 parser.add_argument('--target_var', type=str, required=True, default='OT', help='target variable in the dataset')
 parser.add_argument('--train_raw', type=bool, default=True, help='training on raw data')
-parser.add_argument('--EB', type=list, default=[0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 65, 80],
+parser.add_argument('--EB', nargs='+', type=float, default=[0, 1, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 65, 80],
                     help='error bounds to run the experiments on')
 
 
@@ -132,7 +132,7 @@ args.dataset = args.data.split('_')[0]
 if __name__ == '__main__':
     if args.model_id == 'arima':
         main_arima(args)
-    if args.model_id == 'dlinear':
+    elif args.model_id == 'dlinear':
         main_dlinear(args)
     elif args.model_id == 'nbeats':
         main_nbeats(args)

@@ -59,17 +59,13 @@ class CompressedDataset(Dataset):
         if self.criterio:
             eb_error_columns = list(filter(lambda c: c[-1] == 'R', columns))
         else:
-            if self.eb < 1:
-                eb_error_columns = list(filter(lambda c: float(
-                    re.findall('0.\d+', c.split('-')[-1])[-1] if len(
-                        re.findall('0.\d+', c.split('-')[-1])) > 0 else -1) == self.eb,
-                                               columns))
-
-            else:
-                eb_error_columns = list(filter(lambda c: int(
-                    re.findall('\d+', c.split('-')[-1])[-1] if len(
-                        re.findall('\d+', c.split('-')[-1])) > 0 else -1) == self.eb,
-                                               columns))
+            eb_error_columns = list(filter(lambda c: re.findall(f'E{self.eb}(?![0-9])', c), columns))
+            if len(eb_error_columns) == 0:
+                eb_error_columns = list(filter(lambda c: re.findall(f'E{self.eb*0.01}(?![0-9])', c), columns))
+                if len(eb_error_columns) == 0:
+                    eb_error_columns = list(filter(lambda c: re.findall(f'E{float(self.eb)}(?![0-9])', c), columns))
+                    if len(eb_error_columns) == 0:
+                        raise Exception('There is something wrong with the variables in the dataset')
 
         eb_error_columns = ['datetime'] + eb_error_columns
 
@@ -79,7 +75,7 @@ class CompressedDataset(Dataset):
 
     def scale(self, df_data, border1s, border2s):
         global scaler
-
+        df_data = df_data.set_index('datetime')
         if scaler is None:
             scaler = StandardScaler()
             train_data = df_data[border1s[0]:border2s[0]]
@@ -117,10 +113,10 @@ class ETT(CompressedDataset):
 
         print('LOG: Data type', self.set_type, 'with columns', df_raw.columns, 'with target', self.target)
 
-        # border1s = [0, 12 * 30 * 24 * 4 - self.seq_len, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4 - self.seq_len]
-        # border2s = [12 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 8 * 30 * 24 * 4]
-        border1s = [0, 7000 - self.seq_len, 8000 - self.seq_len]
-        border2s = [7000, 8000, 10000]
+        border1s = [0, 12 * 30 * 24 * 4 - self.seq_len, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4 - self.seq_len]
+        border2s = [12 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4, 12 * 30 * 24 * 4 + 8 * 30 * 24 * 4]
+        # border1s = [0, 7000 - self.seq_len, 8000 - self.seq_len]
+        # border2s = [7000, 8000, 10000]
 
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
@@ -237,12 +233,13 @@ class Solar(CompressedDataset):
         data = self.scale(df_data, border1s, border2s)
 
         df_stamp = df_raw[['datetime']][border1:border2]
-        df_stamp['datetime'] = pd.to_datetime(df_stamp.datetime)
+        # df_stamp['datetime'] = pd.to_datetime(df_stamp.datetime)
         data_stamp = time_features(df_stamp)
 
         self.data_x = data[border1:border2]
         self.data_y = data[border1:border2]
         self.data_stamp = data_stamp
+        self.data_timestamp = df_stamp.set_index('datetime')
 
 
 class Wind(CompressedDataset):
@@ -325,9 +322,9 @@ class AUSElecDem(CompressedDataset):
 
         print('LOG: Data type', self.set_type, 'with columns', df_raw.columns, 'with target', self.target)
 
-        num_train = int(len(df_raw) * 0.01)
-        num_test = int(len(df_raw) * 0.01)
-        num_vali = int(len(df_raw)*0.03 - num_train - num_test)
+        num_train = int(len(df_raw) * 0.7)
+        num_test = int(len(df_raw) * 0.2)
+        num_vali = int(len(df_raw) - num_train - num_test)
         border1s = [0, num_train - self.seq_len, len(df_raw) - num_test - self.seq_len]
         border2s = [num_train, num_train + num_vali, len(df_raw)]
         border1 = border1s[self.set_type]
