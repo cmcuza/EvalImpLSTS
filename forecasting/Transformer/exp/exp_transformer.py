@@ -1,5 +1,5 @@
 from exp_basic import ExpBasic
-from forecasting.Transformer.components.model import Transformer
+from forecasting.Transformer.components.transformer_model import Transformer
 from torch.optim.lr_scheduler import StepLR
 from itertools import product
 

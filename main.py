@@ -2,8 +2,9 @@ from forecasting.DLinear.main_dlinear import main_dlinear
 from forecasting.GRU.main_gru import main_gru
 from forecasting.NBeats.main_nbeats import main_nbeats
 from forecasting.Transformer.main_transformer import main_transformer
-from forecasting.ARIMA.main_arima import main_arima
+from forecasting.Arima.main_arima import main_arima
 from forecasting.Informer.main_informer import main_informer
+from forecasting.XGBoost.main_xgboost import main_xgboost
 from os.path import join
 import argparse
 import torch
@@ -25,7 +26,10 @@ parser.add_argument('--model_id', type=str, required=True, default='gru', help='
 parser.add_argument('--data', type=str, required=True, default='ettm1', help='dataset type')
 parser.add_argument('--root_path', type=str, default=join('.', 'data', 'compressed'), help='root path of the data file')
 parser.add_argument('--eblc', type=str, default='pmc', help='error bound lossy compressor')
-parser.add_argument('--features', type=str, default='S', help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
+parser.add_argument('--features', type=str, default='S', help='forecasting task, options:[M, S, MS]; '
+                                                              'M:multivariate predict multivariate, '
+                                                              'S:univariate predict univariate, '
+                                                              'MS:multivariate predict univariate')
 parser.add_argument('--freq', type=str, default='h', help='freq for time features encoding, options:'
                                                           '[s:secondly, t:minutely, h:hourly, '
                                                           'd:daily, b:business days, '
@@ -90,6 +94,14 @@ parser.add_argument('--num_blocks', type=int, default=1, help='num of heads')
 parser.add_argument('--num_layers', type=int, default=4, help='num of encoder layers')
 parser.add_argument('--layer_widths', type=int, default=64, help='num of decoder layers')
 
+# XGBoost
+
+parser.add_argument('--n_estimators', type=int, default=100, help='number of estimators')
+parser.add_argument('--max_depth', type=int, default=6, help='Maximum tree depth for base learners')
+parser.add_argument('--subsample', type=float, default=0.8, help='subsample')
+parser.add_argument('--min_child_weight', type=float, default=1, help='Minimum sum of instance weight(hessian) '
+                                                                     'needed in a child')
+
 
 # optimization
 parser.add_argument('--num_workers', type=int, default=1, help='data loader num workers')
@@ -134,6 +146,8 @@ if __name__ == '__main__':
         main_arima(args)
     elif args.model_id == 'dlinear':
         main_dlinear(args)
+    elif args.model_id == 'xgboost':
+        main_xgboost(args)
     elif args.model_id == 'nbeats':
         main_nbeats(args)
     elif args.model_id == 'transformer':

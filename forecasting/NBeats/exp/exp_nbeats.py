@@ -1,4 +1,4 @@
-from forecasting.NBeats.components.model import NBeats
+from forecasting.NBeats.components.nbeats_model import NBeats
 from exp_basic import ExpBasic
 from torch.optim.lr_scheduler import StepLR
 from itertools import product

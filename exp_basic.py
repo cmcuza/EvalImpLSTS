@@ -47,7 +47,7 @@ class ExpBasic(object):
 
         return x_seq_data, y_seq_data
 
-    def temporal_train_val_test_split(self, data, eb):
+    def temporal_train_val_test_split(self, data):
 
         if self.fixed_borders:
             border1s = [0, 12 * 30 * 24 * 4 - self.seq_len, 12 * 30 * 24 * 4 + 4 * 30 * 24 * 4 - self.seq_len]
@@ -63,22 +63,18 @@ class ExpBasic(object):
 
         train_border1 = border1s[0]
         train_border2 = border2s[0]
-        target_column = ['datetime', self.ot + '-' + eb]
 
-        if target_column[1] not in data:
-            target_column[1] = self.ot + '-' + float(eb)
-
-        train_data = data[target_column][train_border1:train_border2].reset_index(drop=True)
+        train_data = data[train_border1:train_border2].reset_index(drop=True)
 
         val_border1 = border1s[1]
         val_border2 = border2s[1]
 
-        val_data = data[target_column][val_border1:val_border2].reset_index(drop=True)
+        val_data = data[val_border1:val_border2].reset_index(drop=True)
 
         test_border1 = border1s[2]
         test_border2 = border2s[2]
 
-        test_data = data[target_column][test_border1:test_border2].reset_index(drop=True)
+        test_data = data[test_border1:test_border2].reset_index(drop=True)
 
         return train_data, val_data, test_data
 
@@ -120,7 +116,7 @@ class ExpBasic(object):
         raw_columns = list(filter(lambda c: c[-1] == 'R', columns))
         raw_columns = ['datetime'] + raw_columns
         temp_full_dataset = full_dataset[raw_columns].copy()
-        train_data, val_data, test_data = self.temporal_train_val_test_split(temp_full_dataset, eb='R')
+        train_data, val_data, test_data = self.temporal_train_val_test_split(temp_full_dataset)
 
         print('train size', train_data.shape)
         x_train = TimeSeries.from_dataframe(train_data, time_col='datetime')
@@ -155,7 +151,7 @@ class ExpBasic(object):
 
                 eb_error_columns.append('datetime')
                 temp_full_dataset = full_dataset[eb_error_columns].copy()
-                _, _, compressed_test_data = self.temporal_train_val_test_split(temp_full_dataset, f'E{eb}')
+                _, _, compressed_test_data = self.temporal_train_val_test_split(temp_full_dataset)
             else:
                 compressed_test_data = test_data
 
@@ -202,7 +198,7 @@ class ExpBasic(object):
         raw_columns = list(filter(lambda c: c[-1] == 'R', columns))
         raw_columns = ['datetime'] + raw_columns
         temp_full_dataset = full_dataset[raw_columns].copy()
-        train_data, val_data, _ = self.temporal_train_val_test_split(temp_full_dataset, eb='R')
+        train_data, val_data, _ = self.temporal_train_val_test_split(temp_full_dataset)
 
         print('train size', train_data.shape)
         x_train = TimeSeries.from_dataframe(train_data, time_col='datetime')

@@ -1,5 +1,5 @@
 from exp_basic import ExpBasic
-from forecasting.GRU.components.model import GRU
+from forecasting.GRU.components.gru_model import GRU
 from torch.optim.lr_scheduler import StepLR
 from itertools import product
 
