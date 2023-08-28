@@ -111,9 +111,7 @@ class ExpArima(ExpBasic):
         print("Loading the data")
         full_dataset = pd.read_parquet(data) #  [:1000]
         full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
-        columns = full_dataset.columns
-        raw_columns = list(filter(lambda c: c[-1] == 'R', columns))
-        raw_columns = ['datetime'] + raw_columns
+        raw_columns = [f'{self.args.target_var}-R', 'datetime']
 
         train_data, val_data, test_data = self.temporal_train_val_test_split(full_dataset[raw_columns].copy())
 
@@ -135,9 +133,8 @@ class ExpArima(ExpBasic):
             if data.find('aus') != -1:
                 eb = float(eb)
 
-            eb_error_columns = list(filter(lambda c: c.split('-')[-1] == f'E{eb}', columns))
+            eb_error_columns = ['datetime', f'{self.args.target_var}-E{eb}']
 
-            eb_error_columns.append('datetime')
             temp_full_dataset = full_dataset[eb_error_columns].copy()
             print('Predicting', self.args.eblc, eb, 'with size', temp_full_dataset.shape)
             _, _, compressed_test_data = self.temporal_train_val_test_split(temp_full_dataset)

@@ -1,9 +1,10 @@
 from os.path import join
 from forecasting.XGBoost.exp.exp_xgboost import ExpXGBoost
+from forecasting.XGBoost.exp.exp_xgboost_mv import ExpXGBoostMV
 
 
 def main_xgboost(args):
-    exp = ExpXGBoost(args) if args.dataset != 'solar' else ExpXGBoost(args)
+    exp = ExpXGBoost(args) if args.dataset != 'solar' else ExpXGBoostMV(args)
     print('Computing the predictions for SZ')
     exp.args.eblc = 'sz'
     data = join(args.root_path, 'sz', args.data)
