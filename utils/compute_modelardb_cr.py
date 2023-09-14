@@ -5,6 +5,7 @@ import sys
 import pandas
 import gzip
 
+
 # Types
 class Metadata(object):
     def __init__(self, path):
@@ -102,20 +103,20 @@ def measureFormats(df, lightweight):
     return results
 
 
-def processFile(anOutputFile, lightweight):
+def processFile(anOutputFile, lightweight=False):
     # Determine what the input files are called without the shared suffix
-    if os.path.isfile(anOutputFile):
-        pathWithoutSuffix = anOutputFile[:anOutputFile.rfind("output") + 7]
-    elif anOutputFile.endswith("_output_"):
-        pathWithoutSuffix = anOutputFile
-    else:
-        pathWithoutSuffix = anOutputFile + "_output_"
+    # if os.path.isfile(anOutputFile):
+    #     pathWithoutSuffix = anOutputFile[:anOutputFile.rfind("output") + 7]
+    # elif anOutputFile.endswith("_output_"):
+    #     pathWithoutSuffix = anOutputFile
+    # else:
+    #     pathWithoutSuffix = anOutputFile + "_output_"
 
     # Read Parquet file with segments and converts the int64s to timestamps
-    metadata = Metadata(pathWithoutSuffix + "segments_metadata.txt")
-    segmentsDF = pandas.read_parquet(pathWithoutSuffix + "segments.parquet")
+    metadata = Metadata(anOutputFile + "_metadata.txt")
+    segmentsDF = pandas.read_parquet(anOutputFile + "_segments.parquet")
 
-    dataPointsDF = pandas.read_parquet(anOutputFile)
+    dataPointsDF = pandas.read_parquet(anOutputFile+'_points.parquet')
 
     result = {}
 
@@ -145,7 +146,7 @@ if __name__ == '__main__':
     compression_map = {
         'pmc': 'pmc_',
         'swing': 'swing_',
-        'Gorillas': 'gorillas_'
+        'gorilla': 'gorillas_'
     }
     argv_length = len(sys.argv)
     if argv_length == 2:
@@ -160,10 +161,10 @@ if __name__ == '__main__':
 
     result = processFile(anOutputFile, lightweight)
     print(json.dumps(result, sort_keys=True, indent=4))
-    substr = compression_map[anOutputFile.split('/')[3]]
+    substr = compression_map[anOutputFile.split('/')[2]]
 
     substr += anOutputFile.split('/')[-1].split('_')[1] + '_cr.json'
 
-    with open('../results/cr/'+substr, 'w') as f:
+    with open('./results/cr/'+substr, 'w') as f:
         json.dump(result, f, indent=4)
 

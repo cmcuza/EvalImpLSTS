@@ -35,9 +35,9 @@ class ExpXGBoostMV(ExpBasic):
         print('Best hyperparameters are', self.parameters)
 
     def change_hyperparameters(self):
-        n_estimators = [32, 64, 128]
-        max_depth = [1, 2, 3]
-        subsample = [0, 0.05, 0.1]
+        n_estimators = [100, 120, 80]
+        max_depth = [4, 6, 8]
+        subsample = [0.5, 0.8, 1]
         # min_child_weight = [0, 0.05, 0.1]
         for i, (ne, md, sp) in enumerate(product(n_estimators, max_depth, subsample)):
             self.parameters['n_estimators'] = ne

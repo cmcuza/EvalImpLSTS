@@ -104,12 +104,14 @@ class ExpBasic(object):
     def test(self, setting, test):
         pass
 
+    def build_name(self, cname):
+        return ''
+
     def run_exp(self, data, model_name):
         print("Running testing", model_name, "on", data, "with", self.seq_len, "and", self.pred_len)
 
         print("Loading the data")
         full_dataset = pd.read_parquet(data)
-        full_dataset = full_dataset[:1000]  # delete
         full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
 
         columns = full_dataset.columns
@@ -124,9 +126,19 @@ class ExpBasic(object):
         print('val size', val_data.shape)
         x_val = TimeSeries.from_dataframe(val_data, time_col='datetime')
 
+        print('test size', test_data.shape)
+
         scaler = Scaler(StandardScaler())
         x_train = scaler.fit_transform(x_train)
         x_val = scaler.transform(x_val)
+
+        seq_x_test, seq_y_test = self.create_sequence(test_data)
+        raw_y_values = np.asarray([scaler.transform(e).all_values() for e in seq_y_test]).squeeze()
+        raw_output_path = join(self.args.output_root, self.args.model_id, self.args.dataset, 'raw')
+        os.makedirs(raw_output_path, exist_ok=True)
+
+        with open(join(raw_output_path, f"testing_true.pickle"), 'wb') as f:
+            pkl.dump(raw_y_values, f)
 
         if not self.model:
             self.model_name = model_name
@@ -134,11 +146,8 @@ class ExpBasic(object):
             print("Training")
             self.model.train(x_train, x_val)
 
-        seq_x_test, seq_y_test = self.create_sequence(test_data)
-        raw_y_values = np.asarray([scaler.transform(e).all_values() for e in seq_y_test]).squeeze()
-
         for eb in self.args.EB:
-            print('Predicting with epsilon=', eb)
+            print('Predicting with epsilon=', eb, flush=True)
 
             if eb != 0:
                 if data.find('sz') != -1:
@@ -173,9 +182,8 @@ class ExpBasic(object):
 
             print('Storing the results')
 
-            new_model_name = "_".join([self.model_name]+['eb', str(eb)])
+            new_model_name = self.build_name(model_name)+f'_eb_{eb}'
             output_path = join(self.args.output_root, self.args.model_id, self.args.dataset, self.args.eblc)
-
             pd.DataFrame(results, index=[0]).to_csv(join(output_path, 'metrics', f"testing_{new_model_name}.csv"), index=False)
             with open(join(output_path, "predictions", f"testing_{new_model_name}_output.pickle"), 'wb') as f:
                 pkl.dump(predictions, f)

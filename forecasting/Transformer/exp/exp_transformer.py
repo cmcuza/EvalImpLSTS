@@ -20,11 +20,7 @@ class ExpTransformer(ExpBasic):
         lr_scheduler_cls = StepLR
         lr_scheduler_kwargs = {'step_size': 2, 'gamma': 0.5}
 
-        self.model_name = "_".join([self.model_name,
-                                    str(self.random_state),
-                                    str(self.seq_len),
-                                    str(self.pred_len)] +
-                                   [str(e) for e in list(self.parameters.values())])
+        self.model_name = self.build_name(self.model_name)
 
         torch_device_str = 'cuda' if self.args.use_gpu else 'cpu'
         optimizer_kwargs = {"lr": self.parameters['lr'], 'weight_decay': self.parameters['weight_decay']}
@@ -41,6 +37,13 @@ class ExpTransformer(ExpBasic):
                             self.model_name)
 
         return model
+
+    def build_name(self, cname):
+        return "_".join([self.model_name,
+                        str(self.random_state),
+                        str(self.seq_len),
+                        str(self.pred_len)] +
+                        [str(e) for e in list(self.parameters.values())])
 
     def change_hyperparameters(self):
         d_model = [32, 64]

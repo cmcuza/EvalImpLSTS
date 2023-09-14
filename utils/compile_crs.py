@@ -7,37 +7,37 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-def compute_cr(raw, compressed, as_percentage=True):
+def compute_cr(raw, compressed, as_percentage=False):
     if as_percentage:
         return (1 - np.round(compressed / raw, 2)) * 100
 
     return np.round(raw / compressed, 2)
 
 
-ettm1_pmc = json.load(open(join('..', 'results', 'pmc_ETTm1_cr.json')))
-ettm2_pmc = json.load(open(join('..', 'results', 'pmc_ETTm2_cr.json')))
-weather_pmc = json.load(open(join('..', 'results', 'pmc_weather_cr_big_eb.json')))
-pweather_pmc = json.load(open(join('..', 'results', 'pmc_pweather_cr.json')))
-belhle02_pmc = json.load(open(join('..', 'results', 'pmc_wind.json')))
-solar_pmc = json.load(open(join('..','results', 'pmc_solar_cr.json')))
-ettm1_swing = json.load(open(join('..', 'results', 'swing_ETTm1_cr.json')))
-ettm2_swing = json.load(open(join('..', 'results', 'swing_ETTm2_cr.json')))
-weather_swing = json.load(open(join('..', 'results', 'swing_weather_cr_big_eb.json')))
-pweather_swing = json.load(open(join('..', 'results', 'swing_pweather_cr.json')))
-belhle02_swing = json.load(open(join('..', 'results', 'swing_wind.json')))
-solar_swing = json.load(open(join('..', 'results', 'swing_solar_cr.json')))
-ettm1_sz = json.load(open(join('..', 'resullts', 'sz_ETTm1_cr.json')))
-ettm2_sz = json.load(open(join('..', 'resullts', 'sz_ETTm2_cr.json')))
-weather_sz = json.load(open(join('..', 'resullts', 'sz_weather_cr_big_eb.json')))
-solar_sz = json.load(open(join('..', 'resullts', 'sz_solar_cr.json')))
-belhle02_sz = json.load(open(join('..', 'resullts', 'sz_wind.json')))
-weather_scaled_pmc = json.load(open(join('..', 'resullts', 'pmc_weather_scaled_cr.json')))
-weather_scaled_swing = json.load(open(join('..', 'resullts', 'swing_weather_scaled_cr.json')))
-solar_gorillas = json.load(open(join('..', 'resullts', 'gorillas_solar_cr.json')))
-belhle02_gorillas = json.load(open(join('..', 'resullts', 'gorillas_wind.json')))
-ettm1_gorillas = json.load(open(join('..', 'resullts', 'gorillas_ETTm1_cr.json')))
-ettm2_gorillas = json.load(open(join('..', 'resullts', 'gorillas_ETTm2_cr.json')))
-weather_gorillas = json.load(open(join('..', 'resullts', 'gorillas_weather_cr.json')))
+ettm1_pmc = json.load(open(join('..', 'results', 'cr', 'pmc_ettm1_cr.json')))
+ettm2_pmc = json.load(open(join('..', 'results', 'cr', 'pmc_ettm2_cr.json')))
+weather_pmc = json.load(open(join('..', 'results', 'cr', 'pmc_weather_cr.json')))
+belhle02_pmc = json.load(open(join('..', 'results', 'cr', 'pmc_wind_cr.json')))
+aus_pmc = json.load(open(join('..', 'results', 'cr', 'pmc_aus_cr.json')))
+solar_pmc = json.load(open(join('..', 'results', 'cr', 'pmc_solar_cr.json')))
+ettm1_swing = json.load(open(join('..', 'results', 'cr', 'swing_ettm1_cr.json')))
+ettm2_swing = json.load(open(join('..', 'results', 'cr', 'swing_ettm2_cr.json')))
+weather_swing = json.load(open(join('..', 'results', 'cr', 'swing_weather_cr.json')))
+belhle02_swing = json.load(open(join('..', 'results', 'cr', 'swing_wind_cr.json')))
+aus_swing = json.load(open(join('..', 'results', 'cr', 'swing_aus_cr.json')))
+solar_swing = json.load(open(join('..', 'results', 'cr', 'swing_solar_cr.json')))
+ettm1_sz = json.load(open(join('..', 'results', 'cr', 'sz_ettm1_cr.json')))
+ettm2_sz = json.load(open(join('..', 'results', 'cr', 'sz_ettm2_cr.json')))
+solar_sz = json.load(open(join('..', 'results', 'cr', 'sz_solar_cr.json')))
+belhle02_sz = json.load(open(join('..', 'results', 'cr', 'sz_wind_cr.json')))
+weather_sz = json.load(open(join('..', 'results', 'cr', 'sz_weather_cr.json')))
+aus_sz = json.load(open(join('..', 'results', 'cr', 'sz_aus_cr.json')))
+solar_gorillas = json.load(open(join('..', 'results', 'cr', 'gorillas_solar_cr.json')))
+belhle02_gorillas = json.load(open(join('..', 'results', 'cr', 'gorillas_wind_cr.json')))
+ettm1_gorillas = json.load(open(join('..', 'results', 'cr', 'gorillas_ettm1_cr.json')))
+ettm2_gorillas = json.load(open(join('..', 'results', 'cr', 'gorillas_ettm2_cr.json')))
+weather_gorillas = json.load(open(join('..', 'results', 'cr', 'gorillas_weather_cr.json')))
+aus_gorillas = json.load(open(join('..', 'results', 'cr', 'gorillas_aus_cr.json')))
 
 list_cr = []
 
@@ -68,23 +68,23 @@ for data, name in [(ettm1_pmc, 'ettm1_pmc'),
     df_ratio['data'] = name.split('_')[0]
     list_cr.append(df_ratio)
 
-for data, name in [(pweather_pmc, 'pweather_pmc'),
-                   (pweather_swing, 'pweather_swing')]:
-
-    uncompressed = data['OT-R']['segments']['gzip']
-    df_ratio = pd.DataFrame()
-
-    for k, v in data.items():
-        lossy_ratio = {}
-        for key, value in data[k]['segments'].items():
-            lossy_ratio[key] = [compute_cr(uncompressed, value)]
-        df_lossy = pd.DataFrame.from_dict(lossy_ratio)
-        df_lossy['error_bound'] = np.round(float(k[4:]) * 0.01, 4) if len(k) > 4 else 0.0
-        df_ratio = pd.concat([df_lossy, df_ratio])
-
-    df_ratio['compression'] = name.split('_')[1]
-    df_ratio['data'] = name.split('_')[0]
-    list_cr.append(df_ratio)
+# for data, name in [(pweather_pmc, 'pweather_pmc'),
+#                    (pweather_swing, 'pweather_swing')]:
+#
+#     uncompressed = data['OT-R']['segments']['gzip']
+#     df_ratio = pd.DataFrame()
+#
+#     for k, v in data.items():
+#         lossy_ratio = {}
+#         for key, value in data[k]['segments'].items():
+#             lossy_ratio[key] = [compute_cr(uncompressed, value)]
+#         df_lossy = pd.DataFrame.from_dict(lossy_ratio)
+#         df_lossy['error_bound'] = np.round(float(k[4:]) * 0.01, 4) if len(k) > 4 else 0.0
+#         df_ratio = pd.concat([df_lossy, df_ratio])
+#
+#     df_ratio['compression'] = name.split('_')[1]
+#     df_ratio['data'] = name.split('_')[0]
+#     list_cr.append(df_ratio)
 
 for data, name in [(ettm1_sz, 'ettm1_sz'),
                    (ettm2_sz, 'ettm2_sz'),
@@ -236,11 +236,43 @@ for data, name in [(belhle02_gorillas, 'belhle02_gorillas')]:
     df_ratio['data'] = name.split('_')[0]
     list_cr.append(df_ratio)
 
+for data, name in [(aus_pmc, 'aus_pmc'),
+                   (aus_swing, 'aus_swing')]:
+
+    uncompressed = data['y-R']['segments']['gzip']
+    df_ratio = pd.DataFrame()
+
+    for k, v in data.items():
+        lossy_ratio = {}
+        for key, value in data[k]['segments'].items():
+            lossy_ratio[key] = [compute_cr(uncompressed, value)]
+        df_lossy = pd.DataFrame.from_dict(lossy_ratio)
+        df_lossy['error_bound'] = float(k[3:]) * 0.01 if len(k) > 4 else 0
+        df_ratio = pd.concat([df_lossy, df_ratio])
+
+    df_ratio['compression'] = name.split('_')[1]
+    df_ratio['data'] = name.split('_')[0]
+    list_cr.append(df_ratio)
+
+for data, name in [(aus_sz, 'aus_sz')]:
+    uncompressed = data['y-R']
+    df_ratio = pd.DataFrame()
+    lossy_ratio = []
+    error_bound = []
+    for k, v in data.items():
+        lossy_ratio.append(compute_cr(uncompressed, v))
+        error_bound.append(float(k[1:]) if k.startswith('E') else 0)
+
+    df_ratio = pd.DataFrame(zip(lossy_ratio, error_bound), columns=['gzip', 'error_bound'])
+    df_ratio['compression'] = name.split('_')[1]
+    df_ratio['data'] = name.split('_')[0]
+    list_cr.append(df_ratio)
+
 concat_df = pd.concat(list_cr)
 
 concat_df = concat_df.sort_values('error_bound')
 concat_df.reset_index(inplace=True, drop=True)
-concat_df.to_csv(join('..', 'resullts', 'cr', 'all_cr.csv'), index=None)
+concat_df.to_csv(join('..', 'results', 'cr', 'all_cr.csv'), index=None)
 
 plt.rcParams['figure.figsize'] = [16, 12]
 ettm1_cr = concat_df[concat_df['data'] == 'ettm1']

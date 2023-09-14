@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import pickle as pkl
 from utils.metrics import metrics
 from os.path import join, exists
+from tqdm import tqdm
 
 
 class ExpArima(ExpBasic):
@@ -77,28 +78,27 @@ class ExpArima(ExpBasic):
         print('Best arima with harmonic K =', best_k)
 
         # return best_model.arima_res_, k - 1
-        x_test = scaler.transform(test)
-        p, t = self.get_predictions(best_model.arima_res_, x_test, self.get_harmonics(test, K=best_k))
-        prediction_path = join(file_root, 'output.pkl')
+        #x_test = scaler.transform(test)
+        #p, t = self.get_predictions(deepcopy(best_model.arima_res_), x_test, self.get_harmonics(test, K=best_k))
+        #prediction_path = join(file_root, 'output.pkl')
 
-        with open(prediction_path, 'wb') as f:
-            pkl.dump(p, f)
+        #with open(prediction_path, 'wb') as f:
+        #    pkl.dump(p, f)
 
-        true_path = join(file_root, 'true.pkl')
-        with open(true_path, 'wb') as f:
-            pkl.dump(t, f)
+        #true_path = join(file_root, 'true.pkl')
+        #with open(true_path, 'wb') as f:
+        #   pkl.dump(t, f)
 
-        r = metrics(p, t)
-        print('Baseline results', r)
+        #r = metrics(p, t)
+        #print('Baseline results', r)
 
         return best_model, best_k
 
     def get_predictions(self, model, data, harmonics):
-        # data = data[:1000]
         predictions = list()
         true = list()
         data = np.squeeze(data)
-        for i in range(0, len(data) - self.pred_len + 1 - self.pred_len, self.pred_len):
+        for i in tqdm(range(0, len(data) - self.pred_len + 1 - self.pred_len, self.pred_len)):
             predictions.append(model.forecast(self.pred_len, exog=harmonics.iloc[i:i + self.pred_len]))
             true.append(data[i:i + self.pred_len])
             model = model.append(data[i:i+self.pred_len], exog=harmonics.iloc[i:i+self.pred_len].values)
@@ -109,12 +109,12 @@ class ExpArima(ExpBasic):
         print("Running testing", model_name, "on", data, "with", self.seq_len, "and", self.pred_len)
         self.model_name = model_name
         print("Loading the data")
-        full_dataset = pd.read_parquet(data) #  [:1000]
+        full_dataset = pd.read_parquet(data)
         full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
         raw_columns = [f'{self.args.target_var}-R', 'datetime']
 
         train_data, val_data, test_data = self.temporal_train_val_test_split(full_dataset[raw_columns].copy())
-
+        train_data = pd.concat([train_data, val_data])
         if not (self.model or self.k):
             self.model, self.k = self.get_best_arima(train_data, test_data)
 
@@ -139,7 +139,7 @@ class ExpArima(ExpBasic):
             print('Predicting', self.args.eblc, eb, 'with size', temp_full_dataset.shape)
             _, _, compressed_test_data = self.temporal_train_val_test_split(temp_full_dataset)
             compressed_test_data = compressed_test_data.set_index('datetime')
-
+            compressed_test_data.rename({f'{self.args.target_var}-E{eb}': f'{self.args.target_var}-R'}, axis=1, inplace=True)
             print('test size', compressed_test_data.shape)
 
             model_result = deepcopy(self.model.arima_res_)

@@ -1,0 +1,6 @@
+1800000
+
+1 dk.aau.modelardb.core.models.UncompressedModelType
+2 dk.aau.modelardb.core.models.FacebookGorillaModelType
+
+1 y-E0.0
