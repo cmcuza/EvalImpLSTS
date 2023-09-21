@@ -78,19 +78,19 @@ class ExpArima(ExpBasic):
         print('Best arima with harmonic K =', best_k)
 
         # return best_model.arima_res_, k - 1
-        #x_test = scaler.transform(test)
-        #p, t = self.get_predictions(deepcopy(best_model.arima_res_), x_test, self.get_harmonics(test, K=best_k))
-        #prediction_path = join(file_root, 'output.pkl')
+        x_test = scaler.transform(test)
+        p, t = self.get_predictions(deepcopy(best_model.arima_res_), x_test, self.get_harmonics(test, K=best_k))
+        prediction_path = join(file_root, 'output.pkl')
 
-        #with open(prediction_path, 'wb') as f:
-        #    pkl.dump(p, f)
+        with open(prediction_path, 'wb') as f:
+           pkl.dump(p, f)
 
-        #true_path = join(file_root, 'true.pkl')
-        #with open(true_path, 'wb') as f:
-        #   pkl.dump(t, f)
+        true_path = join(file_root, 'true.pkl')
+        with open(true_path, 'wb') as f:
+          pkl.dump(t, f)
 
-        #r = metrics(p, t)
-        #print('Baseline results', r)
+        r = metrics(p, t)
+        print('Baseline results', r)
 
         return best_model, best_k
 
@@ -110,7 +110,10 @@ class ExpArima(ExpBasic):
         self.model_name = model_name
         print("Loading the data")
         full_dataset = pd.read_parquet(data)
-        full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
+        if 'sz' in data:
+            full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
+        else:
+            full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'], unit='ms')
         raw_columns = [f'{self.args.target_var}-R', 'datetime']
 
         train_data, val_data, test_data = self.temporal_train_val_test_split(full_dataset[raw_columns].copy())
@@ -139,6 +142,7 @@ class ExpArima(ExpBasic):
             print('Predicting', self.args.eblc, eb, 'with size', temp_full_dataset.shape)
             _, _, compressed_test_data = self.temporal_train_val_test_split(temp_full_dataset)
             compressed_test_data = compressed_test_data.set_index('datetime')
+            print(compressed_test_data.head())
             compressed_test_data.rename({f'{self.args.target_var}-E{eb}': f'{self.args.target_var}-R'}, axis=1, inplace=True)
             print('test size', compressed_test_data.shape)
 

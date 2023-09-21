@@ -1,0 +1,17 @@
+600000
+
+1 dk.aau.modelardb.core.models.UncompressedModelType
+2 dk.aau.modelardb.core.models.PMC_MeanModelType
+
+1 OT-E1.0
+2 OT-E2.0
+3 OT-E2.3
+4 OT-E2.5
+5 OT-E5.0
+6 OT-E10.0
+7 OT-E1.5
+8 OT-E1.7
+9 OT-E3.0
+10 OT-E1.3
+11 OT-E7.0
+12 OT-E2.7

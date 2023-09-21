@@ -19,6 +19,18 @@ def rename(root_path, old, new, re=''):
     print(count, 'files changed')
 
 
+# import pickle as pkl
+
+# def fix_wind():
+#     for root, dr, files in os.walk('output/arima/wind/'):
+#         for file in files:
+#             if 'output' in file:
+#                 with open(os.path.join(root, file), 'rb') as f:
+#                     out = pkl.load(f)
+#                 out = out[1:]
+#                 with open(os.path.join(root, file), 'wb') as f:
+#                     pkl.dump(out, f)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', help='root dir')

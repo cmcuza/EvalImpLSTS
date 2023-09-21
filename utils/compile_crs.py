@@ -91,7 +91,6 @@ for data, name in [(ettm1_sz, 'ettm1_sz'),
                    (weather_sz, 'weather_sz')]:
 
     uncompressed = data['OT-R']
-    df_ratio = pd.DataFrame()
     lossy_ratio = []
     error_bound = []
     for k, v in data.items():
