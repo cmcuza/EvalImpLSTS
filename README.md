@@ -1,4 +1,4 @@
-# Evaluating the Impact of Lossy Compression on Forecasting Accuracy
+# Evaluating the Impact of Lossy Compression on Forecasting Accuracy (Under Submission)
 This repository contains code and data for evaluating the impact of lossy compression on the accuracy of time series forecasting models. In particular, we explore the effects of different compression levels and methods on the performance of forecasting models tested on compressed data.
 
 With the rise of data-driven decision-making and operational optimization in the renewable energy sector, high-frequency time series has become a crucial tool.
