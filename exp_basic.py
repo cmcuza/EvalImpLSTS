@@ -19,6 +19,8 @@ class ExpBasic(object):
         self.pred_len = args.pred_len
         self.ot = args.target_var
         self.random_state = np.random.randint(1000)
+        self.is_retrain = False
+
         if self.args.data.find('ett') != -1:
             self.fixed_borders = True
         else:

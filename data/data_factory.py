@@ -35,7 +35,8 @@ def data_provider(args, flag):
         features=args.features,
         target=args.target_var,
         freq=freq,
-        eb=args.eb
+        eb=args.eb,
+        retrain=args.retrain
     )
     print(flag, len(data_set))
     data_loader = DataLoader(

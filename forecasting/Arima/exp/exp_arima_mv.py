@@ -9,6 +9,7 @@ from copy import deepcopy
 import pickle as pkl
 from utils.metrics import metrics
 from os.path import join, exists
+from tqdm import tqdm
 
 
 class ExpArimaMV(ExpBasic):
@@ -30,7 +31,7 @@ class ExpArimaMV(ExpBasic):
         return harmonics
 
     def get_best_arima(self, train, train_stamp, test, test_stamp, ps):
-        K = 3
+        K = 2
         k_list = list()
         file_root = join('output', 'arima', self.args.dataset, 'raw')
         os.makedirs(file_root, exist_ok=True)
@@ -117,7 +118,7 @@ class ExpArimaMV(ExpBasic):
         predictions = list()
         true = list()
         data = np.squeeze(data)
-        for i in range(0, len(data) - self.pred_len + 1 - self.pred_len, self.pred_len):
+        for i in tqdm(range(0, len(data) - self.pred_len + 1 - self.pred_len, self.pred_len)):
             predictions.append(model.forecast(self.pred_len, exog=harmonics.iloc[i:i + self.pred_len]))
             true.append(data[i:i + self.pred_len])
             model = model.append(data[i:i+self.pred_len], exog=harmonics.iloc[i:i+self.pred_len].values)
@@ -137,9 +138,12 @@ class ExpArimaMV(ExpBasic):
         if not (self.model or self.k):
             self.model, self.k = self.get_best_arima(train_data, train_timestamps, test_data, test_timestamps, 0)
 
-        self.run_ps_exp(model_name, train_data, 0)
+        self.run_ps_exp(model_name, train_data, 0, 35)
+        self.run_ps_exp(model_name, train_data, 35, 70)
+        self.run_ps_exp(model_name, train_data, 95, 110)
+        self.run_ps_exp(model_name, train_data, 110, 150)
 
-    def run_ps_exp(self, model_name, raw_train_data, ps):
+    def run_ps_exp(self, model_name, raw_train_data, ps, pe):
         file_root = join('output', 'arima', self.args.dataset, self.args.eblc)
 
         for eb in self.args.EB:
@@ -154,7 +158,8 @@ class ExpArimaMV(ExpBasic):
 
             test_data, test_timestamps = test_loader.data_x, test_loader.data_timestamp
 
-            for i in range(ps, ps + raw_train_data.shape[1]):
+            #for i in range(ps, ps + raw_train_data.shape[1]):
+            for i in range(ps, ps + min(raw_train_data.shape[1], ps+pe)):
                 print('test size', test_data.shape)
 
                 # model_path = join(file_root, 'models', model_name + f'eb_{eb}.pkl')

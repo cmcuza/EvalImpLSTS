@@ -50,6 +50,7 @@ def main_informer(args):
                                                                                                                     eb,
                                                                                                                     args.train_raw,
                                                                                                                     args.des, ii)
+            setting += '_retrain' if args.retrain == 1 else ''
             if eb == 0.0:
                 exp = Exp(args)  # set experiments
 
@@ -63,8 +64,15 @@ def main_informer(args):
                     args.eblc = eblc
                     if eblc == 'sz':
                         eb = np.round(eb * 0.01, 4)
-                    print('>>>>>>>predicting eb_{}: {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(eb, setting))
-                    exp.predict(setting, eb=eb)
+                    if args.retrain == 0:
+                        print('>>>>>>>predicting eb_{}: {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(eb, setting))
+                        exp.predict(setting, eb=eb)
+                    else:
+                        exp.is_retrain = True
+                        print('>>>>>>>retraining eb_{}: {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(eb, setting))
+                        exp.retrain(setting, eb=eb)
+                        print('>>>>>>>predicting eb_{}: {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(eb, setting))
+                        exp.predict(setting, eb=eb)
 
         torch.cuda.empty_cache()
         

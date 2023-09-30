@@ -133,6 +133,76 @@ class LinearExp(ExpBasic):
 
         return self.model
 
+    def retrain(self, setting, eb):
+        self.model = self._build_model().to(self.device)
+        self.args.eb = eb
+        train_data, train_loader = self._get_data(flag='train')
+        vali_data, vali_loader = self._get_data(flag='val')
+        # test_data, test_loader = self._get_data(flag='test')
+
+        path = os.path.join(self.args.checkpoints, setting)
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        time_now = time.time()
+
+        train_steps = len(train_loader)
+        early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
+
+        model_optim = self._select_optimizer()
+        criterion = self._select_criterion()
+
+        for epoch in range(self.args.train_epochs):
+            iter_count = 0
+            train_loss = []
+
+            self.model.train()
+            epoch_time = time.time()
+            for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in enumerate(train_loader):
+                iter_count += 1
+                model_optim.zero_grad()
+                batch_x = batch_x.float().to(self.device)
+
+                batch_y = batch_y.float().to(self.device)
+
+                outputs = self.model(batch_x)
+
+                f_dim = -1 if self.args.features == 'MS' else 0
+                outputs = outputs[:, -self.args.pred_len:, f_dim:]
+                batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+                loss = criterion(outputs, batch_y)
+                train_loss.append(loss.item())
+
+                if (i + 1) % 100 == 0:
+                    print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
+                    speed = (time.time() - time_now) / iter_count
+                    left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
+                    print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
+                    iter_count = 0
+                    time_now = time.time()
+
+                loss.backward()
+                model_optim.step()
+
+            print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
+            train_loss = np.average(train_loss)
+            vali_loss = self.val(vali_data, vali_loader, criterion)
+            # test_loss = self.val(test_data, test_loader, criterion)
+
+            print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f}".format(
+                epoch + 1, train_steps, train_loss, vali_loss))
+            early_stopping(vali_loss, self.model, path)
+            if early_stopping.early_stop:
+                print("Early stopping")
+                break
+
+            adjust_learning_rate(model_optim, epoch + 1, self.args)
+
+        best_model_path = path + os.path.sep + 'checkpoint.pth'
+        self.model.load_state_dict(torch.load(best_model_path))
+
+        return self.model
+
     def test(self, setting, test=0):
         test_data, test_loader = self._get_data(flag='test')
         
@@ -143,7 +213,7 @@ class LinearExp(ExpBasic):
         preds = []
         trues = []
         inputx = []
-        folder_path = os.path.join('output', 'DLinear', 'raw', self.args.dataset, setting)
+        folder_path = os.path.join('output', 'dlinear', 'raw', self.args.dataset, setting)
 
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -186,8 +256,8 @@ class LinearExp(ExpBasic):
         with open(folder_path + os.path.sep + f'predictions_results_{date.today()}.text', 'a') as f:
             f.write(setting + 'raw: \n mse:{}, mae:{}, rse:{}, corr:{}\n'.format(mse, mae, rse, corr))
 
-        np.save(folder_path + os.path.sep + 'pred.npy', preds)
-        np.save(folder_path + os.path.sep + 'true.npy', trues)
+        np.save(folder_path + os.path.sep + 'pred.npy', preds.squeeze())
+        np.save(folder_path + os.path.sep + 'true.npy', trues.squeeze())
         return
 
     def predict(self, setting, load=False, eb=0.0):
@@ -214,7 +284,7 @@ class LinearExp(ExpBasic):
         preds = preds.reshape((-1, preds.shape[-2], preds.shape[-1]))
 
         # result save
-        folder_path = os.path.join('output', 'DLinear', self.args.eblc, self.args.dataset, setting)
+        folder_path = os.path.join('output', 'dlinear', self.args.eblc, self.args.dataset, setting)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
