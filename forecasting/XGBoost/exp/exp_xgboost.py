@@ -1,4 +1,4 @@
-from copy import deepcopy
+import json
 from exp_basic import ExpBasic
 import pandas as pd
 import numpy as np
@@ -21,8 +21,10 @@ class ExpXGBoost(ExpBasic):
             # 'min_child_weight': args.min_child_weight
         }
 
+        self.hyperparameters_path = os.path.join('output', 'xgboost', args.dataset, 'raw', 'hyperparameters_index.txt')
+
     def set_best_hyperparameter(self, index):
-        n_estimators = [100, 120, 80]
+        n_estimators = [80, 100, 120]
         max_depth = [4, 6, 8]
         subsample = [0.5, 0.8, 1]
         # min_child_weight = [0, 0.05, 0.1]
@@ -34,10 +36,11 @@ class ExpXGBoost(ExpBasic):
         print('Best hyperparameters are', self.parameters)
 
     def change_hyperparameters(self):
-        n_estimators = [100, 120, 80]
+        n_estimators = [80, 100, 120]
         max_depth = [4, 6, 8]
         subsample = [0.5, 0.8, 1]
         # min_child_weight = [0, 0.05, 0.1]
+
         for i, (ne, md, sp) in enumerate(product(n_estimators, max_depth, subsample)):
             self.parameters['n_estimators'] = ne
             self.parameters['max_depth'] = md
@@ -53,7 +56,6 @@ class ExpXGBoost(ExpBasic):
 
     def find_hyperparameters(self, data, model_name):
         full_dataset = pd.read_parquet(data)
-        best_model = None
         min_error = np.inf
         min_hyper = 0
         full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
@@ -66,30 +68,33 @@ class ExpXGBoost(ExpBasic):
         train = train_data.set_index('datetime').values
         val = val_data.set_index('datetime').values
         # test = test_data.set_index('datetime')
+        if os.path.exists(self.hyperparameters_path):
+            min_hyper = int(open(self.hyperparameters_path, 'r').readline())
+        else:
+            for i in self.change_hyperparameters():
+                print("Training combination", i)
+                self.model_name = model_name
+                self.model = self._build_model()
+                self.model.train(train)
 
-        for i in self.change_hyperparameters():
-            print("Training combination", i)
-            self.model_name = model_name
-            self.model = self._build_model()
-            self.model.train(train)
+                true, pred = self.model.predict(val)
+                error = MSE(true, pred)
+                if error < min_error:
+                    print("Error reduced from",  round(min_error, 4), "to", round(error, 4), "with parameters", self.parameters)
+                    min_error = error
+                    min_hyper = i
 
-            true, pred = self.model.predict(val)
-            error = MSE(true, pred)
-            if error < min_error:
-                min_error = error
-                min_hyper = i
+            open(self.hyperparameters_path, 'w').write('%d' % min_hyper)
 
         self.set_best_hyperparameter(min_hyper)
 
         self.model = None
 
-        return best_model
-
     def run_exp(self, data, model_name):
         print("Running testing", model_name, "on", data, "with", self.seq_len, "and", self.pred_len)
         self.model_name = model_name
         print("Loading the data")
-        full_dataset = pd.read_parquet(data) #  [:1000]
+        full_dataset = pd.read_parquet(data)
         full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
         raw_columns = ['datetime', f'{self.args.target_var}-R']
 
@@ -127,9 +132,13 @@ class ExpXGBoost(ExpBasic):
             if data.find('aus') != -1:
                 eb = np.round(float(eb), 3)
 
+            if data.find('pweather') != -1:
+                eb = np.round(float(eb), 3)
+
             eb_error_columns = ['datetime', f'{self.args.target_var}-E{eb}']
 
             temp_full_dataset = full_dataset[eb_error_columns].copy()
+            temp_full_dataset.rename({f'{self.args.target_var}-E{eb}': f'{self.args.target_var}-R'}, axis=1, inplace=True)
             print('Predicting', self.args.eblc, eb, 'with size', temp_full_dataset.shape)
             _, _, compressed_test_data = self.temporal_train_val_test_split(temp_full_dataset)
             compressed_test_data = compressed_test_data.set_index('datetime')

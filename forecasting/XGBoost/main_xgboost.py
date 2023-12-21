@@ -7,7 +7,7 @@ def main_xgboost(args):
     exp = ExpXGBoost(args) if args.dataset != 'solar' else ExpXGBoostMV(args)
     print('Computing the predictions for SZ')
     exp.args.eblc = 'sz'
-    data = join(args.root_path, 'sz', args.data)
+    data = join(args.root_path, 'pmc', args.data)
     exp.find_hyperparameters(data, 'xgboost')
     exp.run_exp(data, f'{args.dataset}_sz_raw_train_xgboost')
     print('Computing the predictions for PMC')

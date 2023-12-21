@@ -22,10 +22,12 @@ class ExpXGBoostMV(ExpBasic):
             # 'min_child_weight': args.min_child_weight
         }
 
+        self.hyperparameters_path = os.path.join('output', 'xgboost', args.dataset, 'raw')
+
     def set_best_hyperparameter(self, index):
-        n_estimators = [100, 120, 80]
+        n_estimators = [80, 100, 120]
         max_depth = [4, 6, 8]
-        subsample = [0.5, 0.8, 1]
+        subsample = [0.8, 1]
         # min_child_weight = [0, 0.05, 0.1]
         ne, md, sp = list(product(n_estimators, max_depth, subsample))[index]
         self.parameters['n_estimators'] = ne
@@ -35,9 +37,9 @@ class ExpXGBoostMV(ExpBasic):
         print('Best hyperparameters are', self.parameters)
 
     def change_hyperparameters(self):
-        n_estimators = [100, 120, 80]
+        n_estimators = [80, 100, 120]
         max_depth = [4, 6, 8]
-        subsample = [0.5, 0.8, 1]
+        subsample = [0.8, 1]
         # min_child_weight = [0, 0.05, 0.1]
         for i, (ne, md, sp) in enumerate(product(n_estimators, max_depth, subsample)):
             self.parameters['n_estimators'] = ne
@@ -63,20 +65,27 @@ class ExpXGBoostMV(ExpBasic):
         val_data = val_loader.data_x
 
         self.model = list()
-        for j in range(train_data.shape[0]):
+        for j in range(train_data.shape[1]):
             min_error = np.inf
             min_hyper = 0
-            for i in self.change_hyperparameters():
-                print("Training combination", i)
-                self.model_name = f'xgboost_v{j}'
-                model = self._build_model()
-                model.train(train_data[:, j])
 
-                true, pred = model.predict(val_data[:, j])
-                error = MSE(true, pred)
-                if error < min_error:
-                    min_error = error
-                    min_hyper = i
+            if os.path.exists(os.path.join(self.hyperparameters_path, f'hyperparameter_index_{j}.txt')):
+                min_hyper = int(open(os.path.join(self.hyperparameters_path, f'hyperparameter_index_{j}.txt'), 'r').readline())
+            else:
+                for i in self.change_hyperparameters():
+                    print("Training combination", i)
+                    self.model_name = f'xgboost_v{j}'
+                    model = self._build_model()
+                    model.train(train_data[:, j])
+
+                    true, pred = model.predict(val_data[:, j])
+                    error = MSE(true, pred)
+                    if error < min_error:
+                        print("Error reduced from", round(min_error, 4), "to", round(error, 4), "with parameters",
+                              self.parameters)
+                        min_error = error
+                        min_hyper = i
+                open(os.path.join(self.hyperparameters_path, f'hyperparameter_index_{j}.txt'), 'w').write('%d' % min_hyper)
 
             self.set_best_hyperparameter(min_hyper)
             model = self._build_model()

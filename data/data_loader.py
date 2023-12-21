@@ -78,7 +78,7 @@ class CompressedDataset(Dataset):
 
     def scale(self, df_data, border1s, border2s):
         global scaler
-        # df_data = df_data.set_index('datetime')
+        df_data = df_data.set_index('datetime')
         if scaler is None:
             scaler = StandardScaler()
             train_data = df_data[border1s[0]:border2s[0]]

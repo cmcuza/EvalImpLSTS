@@ -30,6 +30,8 @@ class ExpBasic(object):
         self.model = None
         self.device = self._acquire_device()
 
+        os.makedirs(join(self.args.output_root, args.model_id, args.dataset, 'raw'), exist_ok=True)
+
         for eblc in ['pmc', 'swing', 'sz']:
             os.makedirs(join(self.args.output_root, args.model_id, args.dataset, eblc, 'predictions'), exist_ok=True)
             os.makedirs(join(self.args.output_root, args.model_id, args.dataset, eblc, 'models'), exist_ok=True)
