@@ -92,12 +92,15 @@ class ExpXGBoostMV(ExpBasic):
             model.train(train_data[:, j])
             self.model.append(model)
 
+            if j > 5:
+                break
+
     def run_exp(self, data, model_name):
         print("Running testing", model_name, "on", data, "with", self.seq_len, "and", self.pred_len)
         self.model_name = model_name
         print("Loading the data")
 
-        test_loader = Solar(root_path='./data/compressed/pmc/', data='solar_output_data_points.parquet', flag='test')
+        test_loader = Solar(root_path=f'./data/compressed/{self.args.eblc}/', data='solar_output_data_points.parquet', flag='test')
         test_data = test_loader.data_x
 
         if not self.model:
@@ -114,6 +117,8 @@ class ExpXGBoostMV(ExpBasic):
 
             cm = metrics(pred, true)
             print(f'Results in raw v{i}', cm)
+            if i > 5:
+                break
 
         self.run_ps_exp(model_name)
 
@@ -134,7 +139,7 @@ class ExpXGBoostMV(ExpBasic):
 
             for i in range(test_data.shape[1]):
                 print('test size', test_data.shape)
-                p, t = self.model[i].predict(test_data[:, i])
+                t, p = self.model[i].predict(test_data[:, i])
 
                 prediction_path = join(file_root, 'predictions', model_name + f'eb_{eb}_v{i}_output.pkl')
                 with open(prediction_path, 'wb') as f:

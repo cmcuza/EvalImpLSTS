@@ -1,4 +1,4 @@
-# Evaluating the Impact of Lossy Compression on Forecasting Accuracy (Under Submission)
+# Evaluating the Impact of Lossy Compression on Forecasting Accuracy 
 This repository contains code and data for evaluating the impact of lossy compression on the accuracy of time series forecasting models. In particular, we explore the effects of different compression levels and methods on the performance of forecasting models tested on compressed data.
 
 With the rise of data-driven decision-making and operational optimization in the renewable energy sector, high-frequency time series has become a crucial tool.
@@ -28,3 +28,17 @@ The goal of this project is to provide a comprehensive evaluation of the impact 
 1. Run the code with the command `bash script/run.sh`.
 2. Once the script has finished executing, you can view the output in the output folder.
 
+## Reference
+
+If you find this code useful in your research, please consider citing our paper:
+
+
+```
+@inproceedings{evalimplsts24,
+  title={Evaluating the Impact of Error-Bounded Lossy Compression on Time Series Forecasting},
+  author={Carlos Enrique Muniz Cuza and S{\o}ren Kejser Jensen and Jonas Brusokas and Nguyen Ho and Torben Bach Pedersen},
+  year={2024},
+  booktitle = {Proceedings 27th International Conference on Extending Database Technology, {EDBT} 2024, Paestum, Italy, March 25 - March 28},
+  publisher = {OpenProceedings.org},
+}
+```

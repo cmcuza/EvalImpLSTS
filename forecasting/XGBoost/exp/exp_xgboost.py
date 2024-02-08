@@ -96,6 +96,10 @@ class ExpXGBoost(ExpBasic):
         print("Loading the data")
         full_dataset = pd.read_parquet(data)
         full_dataset['datetime'] = pd.to_datetime(full_dataset['datetime'])
+
+        if 'active power-R' in full_dataset:
+            self.args.target_var = 'active power'
+
         raw_columns = ['datetime', f'{self.args.target_var}-R']
 
         train_data, val_data, test_data = self.temporal_train_val_test_split(full_dataset[raw_columns].copy())
